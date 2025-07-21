@@ -9,10 +9,11 @@
     <link rel="icon" type="image/x-icon" href="{% static 'images/modcod.ico' %}">
 </head>
 <body>
+    {% include "../layouts/nav.html" %}
     <div id="alert-container" style="position: fixed; top: 10px; left: 20px; z-index: 9999;">
         {% include "../layouts/erreur.html" %}
     </div>
-    <div class="container">
+    <div class="container" style="margin-top:6rem;">
         <div class="header">
             <h1>Nouvelle Appel d'Offre</h1>
         </div>
@@ -25,6 +26,15 @@
             <form id="projectForm" action="{% url "create_project" %}" method="POST" >
                 {% csrf_token %}
                 <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label required" for="etat_avancement">Client</label>
+                        <select id="etat_avancement" name="client" class="form-select" required >
+                            <option value="">Sélectionnez le client</option>
+                            {% for c in clients  %}
+                                <option value="{{c.username}}">{{c.username}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                     <div class="form-group">
                         <label class="form-label required" for="reference">Référence</label>
                         <input type="text" id="reference" name="reference" class="form-input" placeholder="Entrez la référence">
@@ -55,8 +65,18 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label" for="date_execution">Date Exécution</label>
-                        <input type="date" id="date_execution" name="date_execution" class="form-input">
+                        <label class="form-label" for="date_execution">Montant caution (MAD)</label>
+                        <input type="text" id="date_execution" name="montant_caution" class="form-input" placeholder="Montant de la caution en DH">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="date_execution">Estimation du projet (MAD)</label>
+                        <input type="text" id="date_execution" name="estimation_projet" class="form-input" placeholder="Estimation du projet en DH">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="date_execution">Délai Exécution</label>
+                        <input type="text" id="date_execution" name="date_execution" class="form-input" placeholder="Délai d'exécution du projet">
                     </div>
 
                     <div class="form-group">
@@ -70,13 +90,13 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label" for="etat_avancement">État d'Avancement</label>
+                        <label class="form-label" for="etat_avancement">Status</label>
                         <select id="etat_avancement" name="status" class="form-select">
                             <option value="">Sélectionnez l'état</option>
-                            <option value="PA">PA</option>
-                            <option value="PEC">PEC</option>
-                            <option value="PG">PG</option>
-                            <option value="PP">PP</option>
+                            <option value="PA">Projet Avant Vente</option>
+                            <option value="PEC">Projet En Cours</option>
+                            <option value="PG">Projet Gagné</option>
+                            <option value="PP">Projet Perdu</option>
                         </select>
                     </div>
 

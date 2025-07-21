@@ -21,6 +21,7 @@ urlpatterns = [
     path('evolution3/',evolution3,name="evolution3"),
     path('display_AV_project/',display_AV_project,name="display_AV_project"),
     path('membres/',membres,name="membres"),
+    
 
 
     #User 
@@ -30,6 +31,8 @@ urlpatterns = [
     path("modify_personnal_info",modifier_profil,name="modifier_profil"),
     path('confirmer_new_user/<int:user_id>',Confirmer_New_User,name="Confirmer_New_User"),
     path('Other_profile/<int:user_id>',Visualiser_Other,name="Visualiser_Other"),
+    path('edit_profile_page/<int:user_id>',Edit_Profile,name="Edit_Profile"),
+    path('edit_user/<int:user_id>',edit_user,name="edit_user"),
 
     
     #Chatbot
@@ -64,4 +67,11 @@ urlpatterns = [
 
     #Logs
     path('logs/',Logs_Page,name="Logs_Page"),
+
+    #Client
+    path('Gestion_client/',Client_Page,name="Client_Page"),
+    path('créer_client/',Créer_Client,name="Créer_Client"),
+    path('supprimer_client/<int:client_id>',Supprimer_Client,name="Supprimer_Client"),
+    path('edit_client/<int:client_id>',edit_client,name="edit_client"),
+    path('edit_client_action/<int:client_id>',edit_client_action,name="edit_client_action"),
 ]

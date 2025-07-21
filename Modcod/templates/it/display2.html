@@ -4,7 +4,7 @@
   <link rel="stylesheet" href="{% static 'css/it/display.css' %}">
   <div class="container">
     <div class="header" style="margin-top:6rem;">
-      <h1>Gestion des Appels d'offres</h1>
+      <h1>Gestion des Appels d'offres avant ventes</h1>
       <p>Suivez et gérez l'ensemble de vos appels d'offres d'entreprise</p>
     </div>
 
@@ -20,10 +20,10 @@
         <div class="filter-group">
           <select id="statusFilter" class="filter-select">
             <option value="">Tous les statuts</option>
-            <option value="PEC">PEC</option>
-            <option value="PG">PG</option>
-            <option value="PP">PP</option>
-            <option value="PV">PV</option>
+            <option value="PEC">Projet En Cours</option>
+            <option value="PG">Projet Gagné</option>
+            <option value="PP">Projet Perdu</option>
+            <option value="PV">Projet Avant Vente</option>
           </select>
           <select id="editorFilter" class="filter-select">
             <option value="">Tous les éditeurs</option>
@@ -90,7 +90,7 @@
         <div class="project-details">
           <div class="detail-item">
             <span class="detail-label">Date limite</span>
-            <span class="detail-value">${project.date_limite}</span>
+            <span class="detail-value" style="color:red;font-weight:bolder;">${project.date_limite}</span>
           </div>
           <div class="detail-item">
             <span class="detail-label">Éditeur</span>

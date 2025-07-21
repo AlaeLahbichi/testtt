@@ -1,8 +1,7 @@
 import re
 import unicodedata
-from nltk.chat.util import reflections # type: ignore
+from nltk.chat.util import reflections , Chat # type: ignore
 from django.http import JsonResponse
-from nltk.chat.util import Chat # type: ignore
 from difflib import SequenceMatcher
 from django.views.decorators.http import require_http_methods
 

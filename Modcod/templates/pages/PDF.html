@@ -256,8 +256,12 @@
                         <span class="detail-value">{{projet.reference_modcod}}</span>
                     </div>
                     <div class="detail-row">
+                        <span class="detail-label">Client :</span>
+                        <span class="detail-value">{{projet.client}}</span>
+                    </div>
+                    <div class="detail-row">
                         <span class="detail-label">Date Limite :</span>
-                        <span class="detail-value">{{projet.date_limite_reponse}}</span>
+                        <span class="detail-value" style="color:red;font-weight:bolder;">{{projet.date_limite_reponse}}</span>
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">Date Création :</span>
@@ -265,7 +269,7 @@
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">Délai Exécution :</span>
-                        <span class="detail-value">{{projet.delai_execution}}</span>
+                        <span class="detail-value" style="color:#05c5cb;font-weight:bolder;">{{projet.delai_execution}}</span>
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">Prospectus :</span>
@@ -285,6 +289,14 @@
                     <div class="detail-row">
                         <span class="detail-label">Caution :</span>
                         <span class="status-badge"> {{projet.caution}} </span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Montant de la caution : </span>
+                        <span class="status-badge"> {{projet.montant_caution}} MAD</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Estimation du projet : </span>
+                        <span class="status-badge" style="color:#05c5cb;font-weight:bolder;"> {{projet.estimation_projet}} MAD</span>
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">Contexte :</span>

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="{% static 'images/modcod.ico' %}">
+    <title>Modifier Client</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #004b48 0%, #006b66 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 75, 72, 0.3);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #FFA500, #FF8C00, #FFCB06);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #6c757d;
+            font-size: 1.1rem;
+        }
+
+        .form-group {
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .form-label {
+            display: block;
+            color: #2c3e50;
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 8px;
+            transform: translateY(0);
+            transition: all 0.3s ease;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 18px 20px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            background: #f8f9fa;
+            color: #2c3e50;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .form-input:focus {
+            border-color: #008b7a;
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(0, 139, 122, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .form-input:focus + .form-label {
+            color: #008b7a;
+        }
+
+        .client-info {
+            background: linear-gradient(135deg, #f8f9fa, #e1e5e9);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-left: 4px solid #FFCB06;
+        }
+
+        .client-info h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        .current-username {
+            color: #008b7a;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 40px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 18px 30px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #008b7a, #004B49);
+            color: white;
+            box-shadow: 0 8px 20px rgba(0, 139, 122, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(0, 139, 122, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #a0aec0, #6c757d);
+            color: white;
+            box-shadow: 0 8px 20px rgba(108, 117, 125, 0.3);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(108, 117, 125, 0.4);
+        }
+
+        .success-message {
+            background: linear-gradient(135deg, #008b7a, #006b66);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+            transform: translateY(-20px);
+            opacity: 0;
+            transition: all 0.5s ease;
+        }
+
+        .success-message.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .btn:active {
+            animation: pulse 0.3s ease;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 25px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="alert-container" style="position: fixed; top: 10px; left: 20px; z-index: 9999;">
+        {% include "../layouts/erreur.html" %}
+    </div>
+    <div class="container">
+        <div class="header">
+            <h1>Modifier Client</h1>
+            <p>Mise à jour des informations</p>
+        </div>
+
+        <div id="successMessage" class="success-message">
+            ✅ Nom d'utilisateur modifié avec succès !
+        </div>
+
+        <div class="client-info">
+            <h3>Client actuel :</h3>
+            <div class="current-username" id="currentUsername">{{client.username}}</div>
+        </div>
+
+        <form id="clientForm" method="POST" action="{% url "edit_client_action" client.id %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="username" class="form-label">Nouveau nom d'utilisateur</label>
+                <input 
+                    type="text" 
+                    id="username" 
+                    name="username" 
+                    class="form-input" 
+                    placeholder="Saisir le nouveau nom d'utilisateur..."
+                    required
+                >
+            </div>
+
+            <div class="button-group">
+                    <button type="submit" class="btn btn-primary">
+                    Sauvegarder
+                </button>
+                <a href="{% url "Client_Page" %}">
+                <button type="button" class="btn btn-secondary">
+                    Annuler
+                </button>
+                </a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

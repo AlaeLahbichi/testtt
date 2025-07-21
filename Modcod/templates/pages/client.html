@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Clients</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'images/modcod.ico' %}">
+    <link rel="stylesheet" href="{% static "css/pages/client.css" %}">
+</head>
+<body>
+    {% include "../layouts/nav.html" %}
+    <div id="alert-container" style="position: fixed; top: 10px; left: 20px; z-index: 9999;">
+        {% include "../layouts/erreur.html" %}
+    </div>
+    <div class="container" style="margin-top:6rem;">
+        <header class="header">
+            <h1>🎯 Gestion des Clients</h1>
+            <p>Interface moderne et intuitive pour gérer vos clients</p>
+        </header>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalClients">{{total}}</div>
+                <div class="stat-label">Total Clients</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Rechercher un client...">
+                <span class="search-icon">🔍</span>
+            </div>
+            <button class="btn btn-primary" onclick="openAddModal()">
+                ➕ Ajouter Client
+            </button>
+        </div>
+
+        <div class="clients-grid" id="clientsGrid">
+            {% for c in clients  %}
+                <div class="client-card">
+                    <div class="client-header">
+                        <div class="client-avatar">
+                            {{ c.username|slice:"0:3" }}
+                        </div>
+                        <div class="client-info">
+                            <h3>{{c.username}}</h3>
+                        </div>
+                    </div>
+                    <div class="client-actions">
+                        <a href="{% url "edit_client" c.id %}">
+                        <button class="btn btn-warning btn-small" onclick="editClient(${client.id})">
+                            ✏️ Modifier
+                        </button>
+                        </a>
+                        <a href="{% url "Supprimer_Client" c.id %}" style="text-decoration:none;">
+                        <button class="btn btn-danger btn-small">
+                            🗑️ Supprimer
+                        </button>
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="empty-state" id="emptyState" style="display: none;">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 4V6C15 7.1 14.1 8 13 8H11C9.9 8 9 7.1 9 6V4L3 7V9H21ZM21 10H3V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V10Z"/>
+            </svg>
+            <h3>Aucun client trouvé</h3>
+            <p>Commencez par ajouter votre premier client</p>
+        </div>
+    </div>
+
+    <div class="modal" id="clientModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Ajouter un Client</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="clientForm" method="POST" action="{% url "Créer_Client" %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="username">Nom d'utilisateur *</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="submit" class="btn btn-success" id="submitBtn">Ajouter</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button>
+                </div>
+            </form>
+        </div>
+
+    <script>
+
+        function openAddModal() {
+            document.getElementById('modalTitle').textContent = 'Ajouter un Client';
+            document.getElementById('submitBtn').textContent = 'Ajouter';
+            document.getElementById('clientForm').reset();
+            editingClientId = null;
+            document.getElementById('clientModal').classList.add('active');
+        }
+
+
+        function closeModal() {
+            document.getElementById('clientModal').classList.remove('active');
+        }
+        
+    document.addEventListener("DOMContentLoaded", function () {
+    const searchInput = document.getElementById("searchInput");
+    const clientCards = document.querySelectorAll(".client-card");
+    const emptyState = document.getElementById("emptyState");
+
+    searchInput.addEventListener("input", function () {
+        const searchTerm = this.value.toLowerCase().trim();
+        let visibleCount = 0;
+
+        clientCards.forEach(card => {
+            const clientName = card.querySelector(".client-info h3").textContent.toLowerCase();
+            if (clientName.includes(searchTerm)) {
+                card.style.display = "block";
+                visibleCount++;
+            } else {
+                card.style.display = "none";
+            }
+        });
+
+        emptyState.style.display = visibleCount === 0 ? "block" : "none";
+    });
+});
+    </script>
+</body>
+</html>

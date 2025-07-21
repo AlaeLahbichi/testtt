@@ -198,7 +198,7 @@
     function updateStats() {
         const total = Math.round(etatValues.reduce((a, b) => a + b, 0));
         const indexTermine = etatLabels.findIndex(label => label.toLowerCase().includes("gagnée") || label.toLowerCase().includes("terminée") || label.toLowerCase().includes("refusée"));
-        const indexEnCours = etatLabels.findIndex(label => label.toLowerCase().includes("cours"));
+        const indexEnCours = etatLabels.findIndex(label => label.toLowerCase().includes(""));
 
         const completed = indexTermine !== -1 ? etatValues[indexTermine] : 0;
         const inProgress = indexEnCours !== -1 ? etatValues[indexEnCours] : 0;

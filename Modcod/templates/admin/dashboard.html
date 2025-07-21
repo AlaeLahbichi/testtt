@@ -32,21 +32,25 @@
                     <span>Utilisateurs</span>
                 </div>
                 {% endif %}
+                <div class="nav-item" onclick="window.location.href='{% url 'Client_Page' %}'">
+                    <i>👥</i>
+                    <span>Clients</span>
+                </div>
                 <div class="nav-item" onclick="showSection('projects')">
                     <i>📁</i>
                     <span>Projets</span>
                 </div>
                 {% if request.user.role == "Admin"  %}
-                    <div class="nav-item">
+                    <div class="nav-item" onclick="window.location.href='{% url 'Gestion_Reclamation' %}'">
                         <a href="{% url "Gestion_Reclamation" %}" style="text-decoration:none;color:white;"><i>❗</i></a>
                         <a href="{% url "Gestion_Reclamation" %}" style="text-decoration:none;color:white;"><span>Réclamation</span></a>
                     </div>
-                    <div class="nav-item">
+                    <div class="nav-item" onclick="window.location.href='{% url 'Logs_Page' %}'">
                         <a href="{% url "Logs_Page" %}" style="text-decoration:none;color:white;"><i>📜</i></a>
                         <a href="{% url "Logs_Page" %}" style="text-decoration:none;color:white;"><span>Logs</span></a>
                     </div>
                 {% endif %}
-                <div class="nav-item">
+                <div class="nav-item" onclick="window.location.href='{% url 'homepage' %}'">
                     <a href="{% url "homepage" %}" style="text-decoration:none;color:white;"><i>🏠</i></a>
                     <a href="{% url "homepage" %}" style="text-decoration:none;color:white;"><span>Accueil</span></a>
                 </div>
@@ -65,17 +69,21 @@
                         <h3 id="total-users">{{count.user}}</h3>
                         <p>Utilisateurs totaux</p>
                     </div>
+                    <div class="stat-card completed">
+                        <h3 id="completed-projects">{{count.Project_avant_vente}}</h3>
+                        <p>Projet avant vente</p>
+                    </div>
+                    <div class="stat-card completed">
+                        <h3 id="completed-projects">{{count.Project_En_Cours}}</h3>
+                        <p>Projet En Cours</p>
+                    </div>
                     <div class="stat-card projects">
                         <h3 id="total-projects">{{count.project_gagnée}}</h3>
-                        <p>Projets gagnées</p>
+                        <p>Projet gagnés</p>
                     </div>
                     <div class="stat-card active">
                         <h3 id="active-users">{{count.project_refusée}}</h3>
-                        <p>Projets refusées</p>
-                    </div>
-                    <div class="stat-card completed">
-                        <h3 id="completed-projects">{{count.Project_avantvente}}</h3>
-                        <p>Projets avant ventes</p>
+                        <p>Projet Perdus</p>
                     </div>
                 </div>
                 {% include "../data/cercle.html" %}
@@ -119,7 +127,7 @@
                                     {% if user.role == "Utilisateur_Temporaire" %}
                                         <a href="{% url "Confirmer_New_User" user.id %}" style="text-decoration:none;"><button style="text-align:center;" class="btn btn-info">✅ Confirmer</button></a>
                                     {% elif user.role != "Utilisateur_Temporaire" and user.id != request.user.id %}
-                                        <a href="{% url "profile" %}" style="text-decoration:none;"><button style="text-align:center;" class="btn btn-info">✏️ Modifier</button></a>
+                                        <a href="{% url "Edit_Profile" user.id %}" style="text-decoration:none;"><button style="text-align:center;" class="btn btn-info">✏️ Modifier</button></a>
                                     {% endif %}
                                     <a href="{% url "supprimer_user_dahsboard" user.id %}" style="text-decoration:none;"><button style="text-align:center;" class="btn btn-danger">🗑️ Supprimer</button></a>
                                     </td>

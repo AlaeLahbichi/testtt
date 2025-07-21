@@ -1,6 +1,6 @@
 from django.shortcuts import render , redirect , get_object_or_404
 from django.contrib import messages
-from .models import CustomUser , Project , Reclamation , Logs
+from .models import CustomUser , Project , Reclamation , Logs , Client
 from .forms import CustomUserCreationForm
 from django.http import HttpResponse , Http404, HttpResponseRedirect # type: ignore
 from django.contrib.auth import login , authenticate , logout  # type: ignore
@@ -91,7 +91,7 @@ def log_out(request):
 #Templates
 @login_required(login_url="/modcod/login")
 def homepage(request):
-    return render(request, "pages/main.html")
+    return render(request, "pages/main.html",{'main':'TA'})
 @login_required(login_url="/modcod/login")
 def DashboardPage(request):
     Users = CustomUser.objects.all()
@@ -100,7 +100,8 @@ def DashboardPage(request):
         "user" : CustomUser.objects.all().count() , 
         "project_gagnée" : Project.objects.filter(status = "PG").count() , 
         "project_refusée" : Project.objects.filter(status = "PP").count() ,
-        "Project_avantvente" : Project.objects.filter(status = "PV").count(),
+        "Project_avant_vente" : Project.objects.filter(status = "PA").count(),
+        "Project_En_Cours" : Project.objects.filter(status = "PEC").count(),
     }
     etat_data = Project.objects.values('status').annotate(total=Count('status'))
     total = sum(item['total'] for item in etat_data) or 1  
@@ -116,7 +117,8 @@ def Profile_Page(request):
     return render(request,"private/profile.html")
 @login_required(login_url="/modcod/login")
 def create_ao(request):
-    return render(request,"pages/create_ao.html")
+    clients = Client.objects.all()
+    return render(request,"pages/create_ao.html",{'clients' : clients,"main":"create"})
 @login_required(login_url="/modcod/login")
 def evolution(request):
     return render(request,"data/evolution.html")
@@ -128,7 +130,7 @@ def evolution3(request):
     return render(request,"data/evolution3.html")
 @login_required(login_url="/modcod/login")
 def display_AV_project(request):
-    return render(request,"pages/Av_display.html")
+    return render(request,"pages/Av_display.html",{'main':'AV'})
 def test(request):
     return render(request,"it/test.html")
 @login_required(login_url="/modcod/login")
@@ -163,6 +165,8 @@ def Get_AV_project(request):
 def Get_specific_project(request, project_id):
     try:
         project = get_object_or_404(Project, id=project_id)
+        project.montant_caution = f"{float(project.montant_caution):,.2f}".replace(",", " ").replace(".", ",")
+        project.estimation_projet = f"{float(project.estimation_projet):,.2f}".replace(",", " ").replace(".", ",")
         return render(request, "it/specific_project.html", {"project": project})
     except Exception as e:
         messages.error(request,f"Une erreur inattendue est survenue, veuillez réessayer plus tard {str(e)} ")
@@ -171,7 +175,7 @@ def Get_specific_project(request, project_id):
 def membres(request):
     try:
         users = CustomUser.objects.all()
-        return render(request, 'pages/membres.html', {'users': users})
+        return render(request, 'pages/membres.html', {'users': users , 'main':'membre'})
     except CustomUser.DoesNotExist:
         return render(request, 'pages/membres.html', {'users': []})
     except Exception as e:
@@ -313,6 +317,42 @@ def Confirmer_New_User(request, user_id):
 def Visualiser_Other(request,user_id):
     user = get_object_or_404(CustomUser , id = user_id)
     return render(request,'private/profile2.html',{'user' : user })
+@login_required(login_url='/modcod/login')
+def Edit_Profile(request,user_id):
+    try : 
+        user = get_object_or_404(CustomUser , id = user_id)
+        return render(request,'pages/modifier_profil.html',{'user' : user})
+    except CustomUser.DoesNotExist :
+        messages.error(request,f"Le user d'id {user_id} n'est pas trouvé ")
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/')) 
+@login_required
+def edit_user(request, user_id):
+    user_to_edit = get_object_or_404(CustomUser, id=user_id)
+    if request.method == "POST":
+        username = request.POST.get('username', '').strip()
+        email = request.POST.get('email', '').strip()
+        first_name = request.POST.get('firstName', '').strip()
+        last_name = request.POST.get('lastName', '').strip()
+        phone_number = request.POST.get('phoneNumber', '').strip()
+        role = request.POST.get('role', '').strip()
+        address = request.POST.get('address', '').strip()
+        if username != user_to_edit.username and CustomUser.objects.filter(username=username).exclude(id=user_id).exists():
+            messages.error(request, "Ce nom d'utilisateur est déjà pris.")
+            return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+        if email != user_to_edit.email and CustomUser.objects.filter(email=email).exclude(id=user_id).exists():
+            messages.error(request, "Cette adresse email est déjà utilisée.")
+            return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+        user_to_edit.username = username
+        user_to_edit.email = email
+        user_to_edit.first_name = first_name
+        user_to_edit.last_name = last_name
+        user_to_edit.phone_number = phone_number 
+        user_to_edit.role = role                    
+        user_to_edit.adress = address              
+        user_to_edit.save()
+        messages.success(request, "Utilisateur mis à jour avec succès.")
+        return redirect('dashboardpage')
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
 
 #Chatbot
 @csrf_exempt
@@ -501,7 +541,15 @@ def create_project(request):
             reference_modcod = request.POST.get('reference_modcod', '').strip()
             objet = request.POST.get('object', '').strip()
             date_limite = request.POST.get('date_limite')
+            client = request.POST.get('client','')
+            try:
+                c = get_object_or_404(Client, username=client)
+            except Http404:
+                messages.success(request,"Le client que vous avez saisi n'existe pas dans la base de donnée merci de l'ajouter au niveau du dashboard")
+                return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
             caution = request.POST.get('caution','ELECTRONIQUE')
+            montant_caution = request.POST.get('montant_caution','0.00')
+            estimation_projet = request.POST.get('estimation_projet','0.00')
             delai_execution = request.POST.get('date_execution')
             prospectus = request.POST.get('prospectus')
             editeur = request.POST.get('editeur', '').strip()
@@ -510,17 +558,18 @@ def create_project(request):
             contexte = request.POST.get('contexte', '').strip()
             documents_manquants = request.POST.get('documents_manquants', '').strip()
             status = request.POST.get('status','PA')
-
             if not reference or not reference_modcod or not objet or not date_limite:
                 messages.warning(request, "Les champs Référence, Référence ModCod, Objet et Date Limite sont obligatoires.")
                 return redirect(request.META.get('HTTP_REFERER', '/'))
-
             Project.objects.create(
                 reference=reference,
+                client = c , 
                 reference_modcod=reference_modcod,
                 objet=objet,
                 date_limite_reponse=parse_datetime(date_limite),
                 caution=caution,
+                montant_caution = montant_caution , 
+                estimation_projet = estimation_projet , 
                 delai_execution=delai_execution if delai_execution else None,
                 prospectus=prospectus if prospectus else None,
                 editeur=editeur,
@@ -530,7 +579,6 @@ def create_project(request):
                 etape_suivante=etape_suivante,
                 status  = status , 
             )
-
             messages.success(request, "✅ Projet créé avec succès !")
             return redirect('homepage')  
 
@@ -550,7 +598,8 @@ def modifier_project_page(request, project_id):
         if not isinstance(project_id, int):
             return HttpResponseBadRequest("ID de projet invalide.")
         project = get_object_or_404(Project, id=project_id)
-        return render(request, "pages/modifier_Ao.html", {'project': project})
+        clients = Client.objects.all()
+        return render(request, "pages/modifier_Ao.html", {'project': project , 'clients' : clients})
     except Project.DoesNotExist as e :
         return messages.error(e)
     except ValueError as e:
@@ -566,6 +615,15 @@ def edit_project(request, project_id):
         project.reference = request.POST.get('reference', '')
         project.reference_modcod = request.POST.get('reference_modcod', '')
         project.objet = request.POST.get('objet', '')
+        client = request.POST.get('client','')
+        project.montant_caution = request.POST.get('montant_caution')
+        project.estimation_projet = request.POST.get('estimation_projet')
+        try:
+            c = get_object_or_404(Client, username=client)
+            project.client = c 
+        except Http404:
+            messages.success(request,"Le client que vous avez saisi n'existe pas dans la base de donnée merci de l'ajouter au niveau du dashboard")
+            return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
         date_limite_reponse = request.POST.get('date_limite_reponse')
         if date_limite_reponse:
             project.date_limite_reponse = date_limite_reponse
@@ -590,9 +648,25 @@ def edit_project(request, project_id):
 #PDF
 def Imprimerie(request,projet_id):
     projet = get_object_or_404(Project,id = projet_id)
+    valeur_str = str(projet.montant_caution)
+    valeur_nettoyee = valeur_str.replace(" ", "").replace(",", ".")
+    montant = float(valeur_nettoyee)
+    projet.montant_caution = f"{montant:,.2f}".replace(",", " ").replace(".", ",")   
+    valeur_str = str(projet.estimation_projet)  
+    valeur_nettoyee = valeur_str.replace(" ", "").replace(",", ".")
+    montant = float(valeur_nettoyee)
+    projet.estimation_projet = f"{montant:,.2f}".replace(",", " ").replace(".", ",")  
     return render(request,'pages/PDF.html',{'projet':projet})
 def download_project_pdf(request, project_id):
     project = get_object_or_404(Project, id=project_id)
+    valeur_str = str(project.montant_caution)
+    valeur_nettoyee = valeur_str.replace(" ", "").replace(",", ".")
+    montant = float(valeur_nettoyee)
+    project.montant_caution = f"{montant:,.2f}".replace(",", " ").replace(".", ",")   
+    valeur_str = str(project.estimation_projet)  
+    valeur_nettoyee = valeur_str.replace(" ", "").replace(",", ".")
+    montant = float(valeur_nettoyee)
+    project.estimation_projet = f"{montant:,.2f}".replace(",", " ").replace(".", ",")  
     html_string = render_to_string('pages/PDF2.html', {'projet': project})
     html = HTML(string=html_string, base_url=request.build_absolute_uri('/'))
     pdf_file = html.write_pdf()
@@ -708,3 +782,52 @@ def Logs_Page(request):
         log.elapsed_time = timesince(log.date_creation, now()) + " ago"
     return render(request, 'private/logs.html', {'logs': logs})
 
+
+#Client
+@login_required(login_url="/modcod/login")
+def Client_Page(request):
+    clients = Client.objects.all()
+    total = Client.objects.count()
+    return render(request,'pages/client.html',{'total':total , 'clients':clients })
+@login_required(login_url="/modcod/login")
+def Créer_Client(request):
+    if request.method == "POST":
+        username = request.POST.get('username')
+        try:
+            Client.objects.get(username=username)
+            messages.error(request, f"Le client '{username}' existe déjà dans la base de données.")
+        except Client.DoesNotExist:
+            Client.objects.create(username=username)
+            messages.success(request, f"Le client '{username}' a été enregistré avec succès.")
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+def Supprimer_Client(request,client_id):
+    try : 
+        client = get_object_or_404(Client , id = client_id )
+        client.delete()
+        messages.success(request,f"Suppression du client {client.username} avec succés")
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+    except Client.DoesNotExist :
+        messages.error(request,f"Le clinet d'id {client_id} n'existe pas")
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+def edit_client(request,client_id):
+    try : 
+        client = get_object_or_404(Client , id = client_id )
+        return render(request,'pages/edit_client.html',{'client':client})
+    except Client.DoesNotExist :
+        messages.error(request,f"Le clinet d'id {client_id} n'existe pas")
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+def edit_client_action(request, client_id):
+    if request.method == "POST":
+        try:
+            client = get_object_or_404(Client, id=client_id)
+            username = request.POST.get('username', '').strip()
+            if Client.objects.filter(username=username).exclude(id=client.id).exists():
+                messages.error(request, f"Le client '{username}' existe déjà dans la base de données.")
+                return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+            client.username = username
+            client.save()
+            messages.success(request, "Changement de username effectué avec succès.")
+            return redirect("Client_Page")
+        except Client.DoesNotExist:
+            messages.error(request, f"Le client avec l'ID {client_id} n'existe pas.")
+            return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))

@@ -9,13 +9,13 @@
             </a>
 
             <div class="nav-actions">
-                <a href="{% url "homepage" %}" class="nav-btn">Réponse Appels d'Offres</a>
-                <a href="{% url "display_AV_project" %}" class="nav-btn">Projet Avant Vente</a>
+                <a href="{% url "homepage" %}" class="nav-btn {% if main == "TA" %}primary{% endif %}">Les Appels d'Offres</a>
+                <a href="{% url "display_AV_project" %}" class="nav-btn {% if main == "AV" %}primary{% endif %}">Projet Avant Vente</a>
                 {% if request.user.role != "Utilisateur_Temporaire" and request.user.role != "Stagiaire" and request.user.role != "Utilisateur_Confirmé" %}
-                    <a href="{% url "membres" %}" class="nav-btn">Membres</a>
+                    <a href="{% url "membres" %}" class="nav-btn {% if main == "membre" %}primary{% endif %}">Membres</a>
                 {% endif %}
                 {% if request.user.role == "Collaborateur" or request.user.role == "Admin" or request.user.role == "Chef_projet"  %}
-                    <a href="{% url "create_ao" %}" class="nav-btn primary">Nouveau</a>
+                    <a href="{% url "create_ao" %}" class="nav-btn {% if main == "create" %}primary{% endif %}">Nouveau Projet</a>
                 {% endif %}
             </div>
 

@@ -33,6 +33,16 @@
                     </div>
 
                     <div class="form-group">
+                        <label for="etat_avancement">👤 Client</label>
+                        <select id="etat_avancement" name="client">
+                            <option disabled value="default">Sélectionner le client</option>
+                            {% for c in clients  %}
+                                <option {% if project.client.username == c.username %}selected{% endif %} value="{{c.username}}">{{c.username}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
                         <label for="objet">📄 Objet</label>
                         <input type="text" id="objet" name="objet" value="{{project.objet}}" placeholder="Objet de l'appel d'offre...">
                     </div>
@@ -52,8 +62,18 @@
                     </div>
 
                     <div class="form-group">
+                        <label for="delai_execution">💰 Montant de la caution (MAD)</label>
+                        <input type="text" id="delai_execution" name="montant_caution" value="{{ project.montant_caution }}" placeholder="Délai d'exécution...">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="delai_execution">💰 Estimation du projet (MAD)</label>
+                        <input type="text" id="delai_execution" name="estimation_projet" value="{{ project.estimation_projet }}" placeholder="Délai d'exécution...">
+                    </div>
+
+                    <div class="form-group">
                         <label for="delai_execution">⏱️ Délai d'Exécution</label>
-                        <input type="date" id="delai_execution" name="delai_execution" value="{{ project.delai_execution }}" placeholder="Délai d'exécution...">
+                        <input type="text" id="delai_execution" name="delai_execution" value="{{ project.delai_execution }}" placeholder="Délai d'exécution...">
                     </div>
 
                     <div class="form-group">
@@ -62,13 +82,13 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="etat_avancement">📊 État d'Avancement</label>
+                        <label for="etat_avancement">📊 Status</label>
                         <select id="etat_avancement" name="status">
                             <option disabled value="default">Sélectionner l'état...</option>
-                            <option {% if project.status == "PEC" %}selected{% endif %} value="PEC">PEC</option>
-                            <option {% if project.status == "PP" %}selected{% endif %} value="PP">PP</option>
-                            <option {% if project.status == "PG" %}selected{% endif %} value="PG">PG</option>
-                            <option {% if project.status == "PA" %}selected{% endif %} value="PA">PA</option>
+                            <option {% if project.status == "PEC" %}selected{% endif %} value="PEC">Projet En Cours</option>
+                            <option {% if project.status == "PP" %}selected{% endif %} value="PP">Projet Perdu</option>
+                            <option {% if project.status == "PG" %}selected{% endif %} value="PG">Projet Gagné</option>
+                            <option {% if project.status == "PA" %}selected{% endif %} value="PA">Projet Avant Vente</option>
                         </select>
                     </div>
                 </div>
