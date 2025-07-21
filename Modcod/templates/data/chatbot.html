@@ -1,0 +1,165 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Assistant Virtuel</title>
+    <link rel="stylesheet" href="{% static 'css/data/chatbot.css' %}">
+    {% csrf_token %}
+    <meta name="csrf-token" content="{{ csrf_token }}">
+</head>
+<body>
+    <div class="chatbot-container">
+        <button class="chat-toggle" onclick="toggleChat()">
+            <span id="toggle-icon">💬</span>
+        </button>
+        
+        <div class="chat-window" id="chatWindow">
+            <div class="chat-header">
+                <h3>Assistant virtuel</h3>
+                <button class="chat-close" onclick="toggleChat()">×</button>
+            </div>
+            
+            <div class="chat-messages" id="chatMessages">
+                <div class="message bot">
+                    Bonjour ! Comment puis-je vous aider aujourd'hui ?
+                </div>
+            </div>
+            
+            <div class="chat-input-container">
+                <input type="text" class="chat-input" id="chatInput" placeholder="Tapez votre message..." onkeypress="handleKeyPress(event)">
+                <button class="chat-send" onclick="sendMessage()">
+                    <span>→</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isOpen = false;
+        let isTyping = false;
+
+        function toggleChat() {
+            const chatWindow = document.getElementById('chatWindow');
+            const toggleIcon = document.getElementById('toggle-icon');
+            
+            isOpen = !isOpen;
+            
+            if (isOpen) {
+                chatWindow.classList.add('active');
+                toggleIcon.textContent = '×';
+                document.getElementById('chatInput').focus();
+            } else {
+                chatWindow.classList.remove('active');
+                toggleIcon.textContent = '💬';
+            }
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (message === '' || isTyping) return;
+            
+            addMessage(message, 'user');
+            input.value = '';
+
+            showTypingIndicator();
+
+            fetch('/modcod/chat/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: `message=${encodeURIComponent(message)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideTypingIndicator();
+                if (data.response) {
+                    addMessage(data.response, 'bot');
+                } else {
+                    addMessage("Je n'ai pas compris votre message.", 'bot');
+                }
+            })
+            .catch(error => {
+                hideTypingIndicator();
+                addMessage("Une erreur est survenue. Veuillez réessayer.", 'bot');
+                console.error(error);
+            });
+        }
+
+        function addMessage(text, sender) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            messageDiv.textContent = text;
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            if (isTyping) return;
+            
+            isTyping = true;
+            const messagesContainer = document.getElementById('chatMessages');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'typing-indicator';
+            typingDiv.id = 'typing-indicator';
+            typingDiv.innerHTML = `
+                <span>Assistant écrit</span>
+                <div class="typing-dots">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            `;
+            
+            messagesContainer.appendChild(typingDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            const typingIndicator = document.getElementById('typing-indicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+            isTyping = false;
+        }
+
+        function getCSRFToken() {
+            const name = 'csrftoken';
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.startsWith(name + '=')) {
+                    return decodeURIComponent(cookie.substring(name.length + 1));
+                }
+            }
+            return '';
+        }
+
+        const welcomeMessages = [
+            "Bonjour ! Comment puis-je vous aider aujourd'hui ?",
+            "Salut ! Je suis votre assistant virtuel. En quoi puis-je vous être utile ?",
+            "Bienvenue ! N'hésitez pas à me poser vos questions.",
+            "Hello ! Je suis là pour vous aider. Que puis-je faire pour vous ?"
+        ];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const messagesContainer = document.getElementById('chatMessages');
+            messagesContainer.innerHTML = '';
+            const randomWelcome = welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)];
+            addMessage(randomWelcome, 'bot');
+        });
+    </script>
+</body>
+</html>

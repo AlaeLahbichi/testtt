@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Logs des Actions Utilisateurs</title>
+    <link rel="stylesheet" href="{% static 'css/private/logs.css' %}" />
+    <link rel="icon" type="image/x-icon" href="{% static 'images/modcod.ico' %}" />
+</head>
+<body>
+    {% include "../layouts/nav.html" %}
+    <div class="container" style="margin-top:6rem;">
+        <div class="header">
+            <h1>Logs des Actions</h1>
+            <p>Suivi en temps réel des activités utilisateurs</p>
+        </div>
+        <div class="filters-section">
+            <div class="filters-container">
+                <div class="filter-group">
+                    <label for="search-input">Rechercher</label>
+                    <input type="text" id="search-input" class="filter-input" placeholder="Nom, email, action..." />
+                </div>
+                <div class="filter-group">
+                    <label for="action-filter">Type d'action</label>
+                    <select id="action-filter" class="filter-input">
+                        <option value="">Toutes les actions</option>
+                        <option value="CREATE">Create</option>
+                        <option value="UPDATE">Update</option>
+                        <option value="DELETE">Delete</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="period-filter">Période</label>
+                    <select id="period-filter" class="filter-input">
+                        <option value="all">Tous</option>
+                        <option value="today">Aujourd'hui</option>
+                        <option value="week">Cette semaine</option>
+                        <option value="month">Ce mois</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="logs-container" id="logs-container">
+            <script>
+                const logsData = [
+                    {% for log in logs %}
+                    {
+                        id: {{ log.id }},
+                        user_first_name: "{{ log.user.first_name|escapejs }}",
+                        user_last_name: "{{ log.user.last_name|escapejs }}",
+                        user_email: "{{ log.user.email|escapejs }}",
+                        action: "{{ log.action|upper }}",
+                        description: "{{ log.description|default_if_none:""|escapejs }}",
+                        date_creation: "{{ log.date_creation|date:'Y-m-d H:i:s' }}",
+                        elapsed_time: "{{ log.elapsed_time|default:'il y a peu'|escapejs }}",
+                    }{% if not forloop.last %},{% endif %}
+                    {% endfor %}
+                ];
+            </script>
+        </div>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('search-input');
+    const actionFilter = document.getElementById('action-filter');
+    const periodFilter = document.getElementById('period-filter');
+    const logsContainer = document.getElementById('logs-container');
+
+    function formatDate(dateStr) {
+        const d = new Date(dateStr);
+        if (isNaN(d)) return dateStr;
+        return d.toLocaleDateString('fr-FR', {
+            day: '2-digit', month: 'short', year: 'numeric',
+            hour: '2-digit', minute: '2-digit', second: '2-digit'
+        });
+    }
+
+    function filterLogs() {
+        const search = searchInput.value.trim().toLowerCase();
+        const action = actionFilter.value.toUpperCase();
+        const period = periodFilter.value;
+
+        const now = new Date();
+        let filtered = logsData.filter(log => {
+            const userFullName = (log.user_first_name + " " + log.user_last_name).toLowerCase();
+            const email = log.user_email.toLowerCase();
+            const actionLog = log.action.toUpperCase();
+            const desc = log.description.toLowerCase();
+
+            if (search && !(
+                userFullName.includes(search) ||
+                email.includes(search) ||
+                actionLog.includes(search)
+            )) return false;
+
+            if (action && action !== "" && action !== "TOUTES LES ACTIONS" && action !== "ALL") {
+                if (actionLog !== action) return false;
+            }
+
+            if (period && period !== "all") {
+                const logDate = new Date(log.date_creation);
+                if (period === "today") {
+                    if (!(logDate.toDateString() === now.toDateString())) return false;
+                } else if (period === "week") {
+                    const oneWeekAgo = new Date(now);
+                    oneWeekAgo.setDate(now.getDate() - 7);
+                    if (!(logDate >= oneWeekAgo)) return false;
+                } else if (period === "month") {
+                    const oneMonthAgo = new Date(now);
+                    oneMonthAgo.setMonth(now.getMonth() - 1);
+                    if (!(logDate >= oneMonthAgo)) return false;
+                }
+            }
+
+            return true;
+        });
+
+        renderLogs(filtered);
+    }
+
+    function renderLogs(logs) {
+        logsContainer.innerHTML = "";
+
+        if (logs.length === 0) {
+            logsContainer.innerHTML = "<p>Aucun log trouvé.</p>";
+            return;
+        }
+
+        logs.forEach(log => {
+            const initials = (log.user_first_name[0] || "U") + (log.user_last_name[0] || "S");
+            const logHTML = `
+            <div class="log-item">
+                <div class="log-header">
+                    <div class="log-id">#LOG_${String(log.id)}</div>
+                    <div class="log-timestamp">
+                        <div>${formatDate(log.date_creation)}</div>
+                        <div>${log.elapsed_time}</div>
+                    </div>
+                </div>
+
+                <div class="log-body">
+                    <div class="user-info">
+                        <div class="user-avatar">${initials}</div>
+                        <div class="user-details">
+                            <h4>${log.user_first_name} ${log.user_last_name}</h4>
+                            <div class="user-role">Administrateur • ${log.user_email}</div>
+                        </div>
+                    </div>
+
+                    <div class="action-type action-${log.action.toLowerCase()}">
+                        ${log.action}
+                    </div>
+
+                    <div class="severity-indicator severity-medium"></div>
+                </div>
+
+                <div class="log-details">
+                    <strong>Détails de l'action :</strong> ${log.description}
+                    <br><br>
+                    <span class="detail-badge">Module: Gestion Utilisateurs</span>
+                    <span class="detail-badge">IP: 192.168.1.105</span>
+                    <span class="detail-badge">Navigateur: Chrome 127</span>
+                    <span class="detail-badge">Statut: Succès</span>
+                </div>
+            </div>`;
+
+            logsContainer.insertAdjacentHTML('beforeend', logHTML);
+        });
+    }
+
+    searchInput.addEventListener('input', filterLogs);
+    actionFilter.addEventListener('change', filterLogs);
+    periodFilter.addEventListener('change', filterLogs);
+
+    filterLogs();
+});
+</script>
+</body>
+</html>

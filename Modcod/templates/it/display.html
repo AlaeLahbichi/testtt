@@ -1,0 +1,206 @@
+{% load static %}
+<link rel="icon" type="image/x-icon" href="{% static 'images/modcod.ico' %}">
+<title>Afficher les appels d'offres</title>
+<link rel="stylesheet" href="{% static 'css/it/display.css' %}">
+<div class="container">
+  <div class="header" style="margin-top:6rem;">
+    <h1>Consultation des Appels d'offres</h1>
+    <p>Suivez et gérez l'ensemble de vos appels d'offres d'entreprise</p>
+  </div>
+
+  <div class="controls">
+    <div class="controls-row">
+      <div class="search-container">
+        <input type="text" id="searchInput" class="search-input" placeholder="Rechercher par référence, objet, éditeur...">
+        <span class="search-icon">🔍</span>
+      </div>
+      <button class="clear-filters" onclick="clearAllFilters()">Effacer les filtres</button>
+    </div>
+    <div class="controls-row">
+      <div class="filter-group">
+        <select id="statusFilter" class="filter-select">
+          <option value="">Tous les statuts</option>
+          <option value="PEC">PEC</option>
+          <option value="PG">PG</option>
+          <option value="PP">PP</option>
+          <option value="PA">PA</option>
+        </select>
+        <select id="editorFilter" class="filter-select">
+          <option value="">Tous les éditeurs</option>
+          {% for editeur in editeurs %}
+            <option value="{{ editeur }}">{{ editeur }}</option>
+          {% endfor %}
+        </select>
+        <input type="date" id="dateFrom" class="date-input" placeholder="Date début">
+        <input type="date" id="dateTo" class="date-input" placeholder="Date fin">
+      </div>
+    </div>
+  </div>
+
+  <div id="projectsContainer" class="projects-grid"></div>
+</div>
+<script>
+  let projects = [];
+  let filteredProjects = [];
+
+  function formatStatusClass(status) {
+    const normalized = status.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    return normalized.replace(/\s/g, '-');
+  }
+
+  function populateEditorFilter(editeurs) {
+    const select = document.getElementById('editorFilter');
+    select.innerHTML = '<option value="">Tous les éditeurs</option>';
+    editeurs.forEach(editeur => {
+      const option = document.createElement('option');
+      option.value = editeur;
+      option.textContent = editeur;
+      select.appendChild(option);
+    });
+  }
+
+  function renderProjects(projectsToRender) {
+    const container = document.getElementById('projectsContainer');
+
+    if (projectsToRender.length === 0) {
+      container.innerHTML = `
+        <div class="no-results">
+          <h3>Aucun projet trouvé</h3>
+          <p>Essayez de modifier vos critères de recherche ou de filtrage</p>
+        </div>
+      `;
+      return;
+    }
+
+    const role = "{{request.user.role}}";
+
+    container.innerHTML = projectsToRender.map(project =>`
+      <div class="project-card">
+        <div class="project-header">
+          <div>
+            <div class="project-reference">${project.reference}</div>
+            <div class="project-modcod">${project.reference_modcod}</div>
+          </div>
+          <div class="status-badge status-${formatStatusClass(project.status)}">
+            ${project.status}
+          </div>
+        </div>
+
+        <div class="project-details">
+          <div class="detail-item">
+            <span class="detail-label">Date limite</span>
+            <span class="detail-value">${project.date_limite || 'N/A'}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Éditeur</span>
+            <span class="detail-value">${project.editeur || 'N/A'}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Prospectus</span>
+            <span class="detail-value">${project.prospectus || 'N/A'}</span>
+          </div>
+          <div 
+            class="detail-item ${project.document_manquant && project.document_manquant !== 'Aucun' ? 'document-alert' : 'N/A'}" 
+            style="display: ${!project.document_manquant ? 'none' : 'block'}"
+          >
+            <span class="detail-label">Doc. manquant</span>
+            <span class="detail-value">${project.document_manquant}</span>
+          </div>
+        </div>
+
+        <div class="project-content">
+          <p>${project.object || 'N/A'}</p>
+        </div>
+
+        <div class="project-actions">
+          ${role != "Utilisateur_Confirmé" && role != "Utilisateur_Temporaire" && role != "Employe_Integration" && role != "Stagiaire" ? `
+            <a href="/modcod/dowload_pdf/${project.id}" style="text-decoration:none;">
+              <button class="btn btn-secondary">💾</button>
+            </a>
+          ` : ''}
+            ${role != "Utilisateur_Confirmé" && role != "Utilisateur_Temporaire" && role != "Stagiaire" ?  `
+              <a href="/modcod/modifier_project_page/${project.id}" style="text-decoration:none;"><button class="btn btn-secondary">✏️ Modifier</button></a>
+          ` : ''}
+          <a href="/modcod/specific_project/${project.id}"><button class="btn btn-primary">👁️ Visualiser</button></a>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function filterProjects() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const statusFilter = document.getElementById('statusFilter').value;
+    const editorFilter = document.getElementById('editorFilter')?.value || '';
+    const dateFrom = document.getElementById('dateFrom').value;
+    const dateTo = document.getElementById('dateTo').value;
+
+    filteredProjects = projects.filter(project => {
+      const matchesSearch =
+        !searchTerm ||
+        project.reference?.toLowerCase().includes(searchTerm) ||
+        project.editeur?.toLowerCase().includes(searchTerm) ||
+        project.reference_modcod?.toLowerCase().includes(searchTerm);
+
+      const matchesStatus = !statusFilter || project.status === statusFilter;
+      const matchesEditor = !editorFilter || project.editeur === editorFilter;
+
+      const projectDate = new Date(project.date_limite);
+      const matchesDateFrom = !dateFrom || projectDate >= new Date(dateFrom);
+      const matchesDateTo = !dateTo || projectDate <= new Date(dateTo);
+
+      return matchesSearch && matchesStatus && matchesEditor && matchesDateFrom && matchesDateTo;
+    });
+
+    renderProjects(filteredProjects);
+  }
+
+  function clearAllFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('statusFilter').value = '';
+    if (document.getElementById('editorFilter')) {
+      document.getElementById('editorFilter').value = '';
+    }
+    document.getElementById('dateFrom').value = '';
+    document.getElementById('dateTo').value = '';
+    filteredProjects = [...projects];
+    renderProjects(filteredProjects);
+  }
+
+  async function fetchProjects() {
+    try {
+      const response = await fetch('/modcod/get_project/');
+      const data = await response.json();
+
+      projects = data.projects.map(p => ({
+        id: p.id,
+        reference: p.reference,
+        reference_modcod: p.reference_modcod,
+        object: p.objet,
+        date_limite: p.date_limite_reponse ? new Date(p.date_limite_reponse).toISOString().split('T')[0] : '',
+        prospectus: p.prospectus || 'N/A',
+        editeur: p.editeur || 'N/A',
+        document_manquant: p.documents_manquants || 'N/A',
+        contenu: p.contexte || 'N/A',
+        etat_avancement: p.etat_d_avancement || 'N/A',
+        status: p.status || 'N/A'
+      }));
+
+      filteredProjects = [...projects];
+
+      populateEditorFilter(data.editeurs);
+      renderProjects(filteredProjects);
+    } catch (error) {
+      console.error("Erreur de chargement des projets :", error);
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    fetchProjects();
+
+    document.getElementById('searchInput').addEventListener('input', filterProjects);
+    document.getElementById('statusFilter').addEventListener('change', filterProjects);
+    document.getElementById('editorFilter').addEventListener('change', filterProjects);
+    document.getElementById('dateFrom').addEventListener('change', filterProjects);
+    document.getElementById('dateTo').addEventListener('change', filterProjects);
+  });
+</script>

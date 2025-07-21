@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="{% static 'images/modcod.ico' %}">
+</head>
+    <div id="alert-container" style="position: fixed; top: 10px; left: 20px; z-index: 9999;">
+        {% include "../layouts/erreur.html" %}
+    </div>
+<body>
+    {% include "../layouts/nav.html" %}
+    {% block content %}{% endblock content %}
+    {% include "../data/chatbot.html" %}
+</body>
+</html>

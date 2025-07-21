@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static "css/pages/create_ao.css" %}">
+    <title>Créer une nouvelle appel d'offre</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'images/modcod.ico' %}">
+</head>
+<body>
+    <div id="alert-container" style="position: fixed; top: 10px; left: 20px; z-index: 9999;">
+        {% include "../layouts/erreur.html" %}
+    </div>
+    <div class="container">
+        <div class="header">
+            <h1>Nouvelle Appel d'Offre</h1>
+        </div>
+
+        <div class="form-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+
+            <form id="projectForm" action="{% url "create_project" %}" method="POST" >
+                {% csrf_token %}
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label required" for="reference">Référence</label>
+                        <input type="text" id="reference" name="reference" class="form-input" placeholder="Entrez la référence">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label required" for="reference_modcod">Référence ModCod</label>
+                        <input type="text" id="reference_modcod" name="reference_modcod" class="form-input" placeholder="Référence ModCod">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label required" for="object">Objet</label>
+                        <input type="text" id="object" name="object" class="form-input" placeholder="Objet du projet">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="date_limite">Date Limite Réponse</label>
+                        <input type="datetime-local" id="date_limite" name="date_limite" class="form-input">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="etat_avancement">Caution</label>
+                        <select id="etat_avancement" name="caution" class="form-select">
+                            <option value="">Sélectionnez l'état</option>
+                            <option value="ELECTRONIQUE">ELECTRONIQUE</option>
+                            <option value="PHYSIQUE">PHYSIQUE</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="date_execution">Date Exécution</label>
+                        <input type="date" id="date_execution" name="date_execution" class="form-input">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="prospectus">Prospectus</label>
+                        <input type="date" id="prospectus" name="prospectus" class="form-input">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="editeur">Éditeur</label>
+                        <input type="text" id="editeur" name="editeur" class="form-input" placeholder="Nom de l'éditeur">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="etat_avancement">État d'Avancement</label>
+                        <select id="etat_avancement" name="status" class="form-select">
+                            <option value="">Sélectionnez l'état</option>
+                            <option value="PA">PA</option>
+                            <option value="PEC">PEC</option>
+                            <option value="PG">PG</option>
+                            <option value="PP">PP</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="etape_suivant">État d'avancement</label>
+                        <input type="text" id="etape_suivant" name="etat_d_avancement" class="form-input" placeholder="État d'avancement">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="etape_suivant">Étape Suivante</label>
+                        <input type="text" id="etape_suivant" name="etape_suivant" class="form-input" placeholder="Prochaine étape">
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label class="form-label" for="contexte">Contexte</label>
+                        <textarea id="contexte" name="contexte" class="form-textarea" placeholder="Décrivez le contexte du projet..."></textarea>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label class="form-label" for="documents_manquants">Documents Manquants</label>
+                        <textarea id="documents_manquants" name="documents_manquants" class="form-textarea" placeholder="Listez les documents manquants..."></textarea>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-outline" onclick="resetForm()">Réinitialiser</button>
+                    <a href="{% url "homepage" %}"><button type="button" class="btn btn-secondary">Annuler</button></a>
+                    <button type="submit" class="btn btn-primary" type="submit">Créer l'appel d'offre</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('projectForm');
+        const progressFill = document.getElementById('progressFill');
+        const inputs = form.querySelectorAll('input, select, textarea');
+
+        function updateProgress() {
+            const totalInputs = inputs.length;
+            let filledInputs = 0;
+            
+            inputs.forEach(input => {
+                if (input.value.trim() !== '') {
+                    filledInputs++;
+                }
+            });
+            
+            const progress = (filledInputs / totalInputs) * 100;
+            progressFill.style.width = progress + '%';
+        }
+
+        inputs.forEach(input => {
+            input.addEventListener('input', updateProgress);
+        });   
+
+        function resetForm() {
+                form.reset();
+                updateProgress();
+        }
+
+        updateProgress();
+    </script>
+    {% include "../data/chatbot.html" %}
+</body>
+</html>

@@ -1,0 +1,128 @@
+{% load static %}
+<link rel="stylesheet" href="{% static "css/layouts/navbar.css" %}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="{% url "homepage" %}" class="logo">
+                <img src="{% static "image/Modcod.png" %}" style="width:200px;" alt="logo of company">
+            </a>
+
+            <div class="nav-actions">
+                <a href="{% url "homepage" %}" class="nav-btn">Réponse Appels d'Offres</a>
+                <a href="{% url "display_AV_project" %}" class="nav-btn">Projet Avant Vente</a>
+                {% if request.user.role != "Utilisateur_Temporaire" and request.user.role != "Stagiaire" and request.user.role != "Utilisateur_Confirmé" %}
+                    <a href="{% url "membres" %}" class="nav-btn">Membres</a>
+                {% endif %}
+                {% if request.user.role == "Collaborateur" or request.user.role == "Admin" or request.user.role == "Chef_projet"  %}
+                    <a href="{% url "create_ao" %}" class="nav-btn primary">Nouveau</a>
+                {% endif %}
+            </div>
+
+            <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
+                ☰
+            </button>
+
+            <div class="profile-section">
+                <div class="profile-btn" onclick="toggleProfileDropdown()">
+                    <img src="{{request.user.ProfileImage.url}}" alt="Profile">
+                </div>
+                
+                <div class="profile-dropdown" id="profileDropdown">
+                    <div class="profile-header">
+                        <img src="{{request.user.ProfileImage.url}}" alt="Profile" class="profile-avatar">
+                        <div class="profile-name">{{request.user.username}}</div>
+                        <div class="profile-email">{{request.user.email}}</div>
+                    </div>
+                    <div class="profile-menu">
+                        <a href="{% url "profile" %}" class="profile-menu-item">
+                            <span class="menu-icon">👤</span>
+                            Mon Profil
+                        </a>
+                        {% if  request.user.role != "Utilisateur_Temporaire" and request.user.role != "Stagiaire" and request.user.role != "Utilisateur_Confirmé"  %}
+                        <a href="{% url "dashboardpage" %}" class="profile-menu-item">
+                            <span class="menu-icon">📊</span>
+                            Dashboard
+                        </a>
+                        {% endif %}
+                        <a href="{% url "evolution" %}" class="profile-menu-item">
+                            <span class="menu-icon">🚀</span>
+                            Évolution
+                        </a>
+                        <a href="{% url "reclamation_page" %}" class="profile-menu-item">
+                            <span class="menu-icon">❓</span>
+                            Réclamation
+                        </a>
+                        <a href="{% url "logout" %}" class="profile-menu-item danger">
+                            <span class="menu-icon">🚪</span>
+                            Déconnexion
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="mobile-overlay" id="mobileOverlay" onclick="closeMobileMenu()"></div>
+    
+    <div class="mobile-menu" id="mobileMenu">
+        <div class="mobile-menu-header">
+            <button class="close-mobile-menu" onclick="closeMobileMenu()">×</button>
+            <div class="logo">
+                <span><img src="{% static "image/Modcod.png" %}" style="width:60%;margin-left:auto;" alt="logo of company"></span>
+            </div>
+        </div>
+        <div class="mobile-menu-content">
+            <a href="{% url "homepage" %}" class="mobile-nav-item">🏠 Accueil</a>
+            <a href="{% url "homepage" %}" class="mobile-nav-item">📌 Réponse Appels d'Offres</a>
+            <a href="{% url "Get_AV_project" %}" class="mobile-nav-item">📌 Projet Avant Vente</a>
+            {% if request.user.role != "Utilisateur_Temporaire" and request.user.role != "Stagiaire" and request.user.role != "Utilisateur_Confirmé" %}
+                <a href="{% url "membres" %}" class="mobile-nav-item">👥 Membres</a>
+            {% endif %}
+            {% if request.user.role == "Collaborateur" or request.user.role == "Admin" or request.user.role == "Chef_projet"  %}
+                <a href="{% url "create_project" %}" class="mobile-nav-item">➕ Nouveau</a>
+            {% endif %} 
+            <hr style="margin: 1rem 0; border: none; border-top: 1px solid #e1e5e9;">
+            <a href="{% url "profile" %}" class="mobile-nav-item">👤 Mon Profil</a>
+            <a href="{% url "dashboardpage" %}" class="mobile-nav-item">⚙️ Dashboard</a>
+            <a href="{% url "logout" %}" class="mobile-nav-item">🚪 Déconnexion</a>
+        </div>
+    </div>
+
+    <script>
+        function toggleProfileDropdown() {
+            const dropdown = document.getElementById('profileDropdown');
+            dropdown.classList.toggle('active');
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            const overlay = document.getElementById('mobileOverlay');
+            menu.classList.add('active');
+            overlay.classList.add('active');
+        }
+
+        function closeMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            const overlay = document.getElementById('mobileOverlay');
+            menu.classList.remove('active');
+            overlay.classList.remove('active');
+        }
+
+        document.addEventListener('click', function(event) {
+            const profileSection = document.querySelector('.profile-section');
+            const dropdown = document.getElementById('profileDropdown');
+            
+            if (!profileSection.contains(event.target)) {
+                dropdown.classList.remove('active');
+            }
+        });
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeMobileMenu();
+            }
+        });
+    </script>
+</body>
+</html>

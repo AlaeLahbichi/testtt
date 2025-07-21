@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modification d'Appel d'Offre</title>
+    <link rel="stylesheet" href="{% static "css/pages/modifier_ao.css" %}">
+    <link rel="icon" type="image/x-icon" href="{% static 'images/modcod.ico' %}">
+</head>
+<body>
+    <div id="alert-container" style="position: fixed; top: 10px; left: 20px; z-index: 9999;">
+        {% include "../layouts/erreur.html" %}
+    </div>
+    <div class="container">
+        <div class="header">
+            <h1>📋 Modification d'Appel d'Offre</h1>
+            <p>Gérez efficacement vos appels d'offres avec notre interface moderne</p>
+        </div>
+
+        <div class="form-container">
+            <form id="tenderForm" method="POST" action="{% url "edit_project" project.id %}">
+                {% csrf_token %}
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="reference">📌 Référence</label>
+                        <input type="text" id="reference" name="reference" value="{{project.reference}}" placeholder="Référence de l'appel d'offre...">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reference_modcod">🔢 Référence MODCOD</label>
+                        <input type="text" id="reference_modcod" name="reference_modcod" value="{{project.reference_modcod}}" placeholder="Référence MODCOD...">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="objet">📄 Objet</label>
+                        <input type="text" id="objet" name="objet" value="{{project.objet}}" placeholder="Objet de l'appel d'offre...">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="date_limite_reponse">📅 Date Limite de Réponse</label>
+                        <input type="datetime-local" id="date_limite_reponse" value="{{ project.date_limite_reponse|date:'Y-m-d\\TH:i' }}" name="date_limite_reponse">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="etat_avancement">💰 Caution</label>
+                        <select id="etat_avancement" name="caution">
+                            <option disabled value="default">Sélectionner l'état...</option>
+                            <option {% if project.caution == "ELECTRONIQUE" %}selected{% endif %} value="ELECTRONIQUE">ELECTRONIQUE</option>
+                            <option {% if project.caution == "PHYSIQUE" %}selected{% endif %} value="PHYSIQUE">PHYSIQUE</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="delai_execution">⏱️ Délai d'Exécution</label>
+                        <input type="date" id="delai_execution" name="delai_execution" value="{{ project.delai_execution }}" placeholder="Délai d'exécution...">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editeur">👤 Éditeur</label>
+                        <input type="text" id="editeur" name="editeur" value="{{project.editeur}}" placeholder="Nom de l'éditeur...">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="etat_avancement">📊 État d'Avancement</label>
+                        <select id="etat_avancement" name="status">
+                            <option disabled value="default">Sélectionner l'état...</option>
+                            <option {% if project.status == "PEC" %}selected{% endif %} value="PEC">PEC</option>
+                            <option {% if project.status == "PP" %}selected{% endif %} value="PP">PP</option>
+                            <option {% if project.status == "PG" %}selected{% endif %} value="PG">PG</option>
+                            <option {% if project.status == "PA" %}selected{% endif %} value="PA">PA</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group prospectus-input">
+                    <label for="prospectus">📋 Prospectus</label>
+                    <input type="date" id="prospectus" name="prospectus" value="{{project.prospectus}}" placeholder="Lien ou description du prospectus...">
+                </div>
+
+                <div class="form-group etat-suivante-input">
+                    <label for="etat_suivante">➡️ État d'avancement</label>
+                    <input type="text" id="etat_suivante" name="etat_d_avancement" value="{{project.etat_d_avancement}}" placeholder="État d'avancement...">
+                </div>
+
+                <div class="form-group etat-suivante-input">
+                    <label for="etat_suivante">➡️ État Suivante</label>
+                    <input type="text" id="etat_suivante" name="etat_suivante" value="{{project.etat_suivante}}" placeholder="Prochain état prévu...">
+                </div>
+
+                <div class="form-group">
+                    <label for="contexte">📝 Contexte</label>
+                    <textarea id="contexte" name="contexte" placeholder="Contexte détaillé de l'appel d'offre...">{{project.contexte}}</textarea>
+                </div>
+
+                <div class="missing-docs-section">
+                    <div class="missing-docs-header">
+                        <span class="alert-icon">⚠️</span>
+                        <label for="documents_manquants">📋 Documents Manquants</label>
+                        <span class="attention-badge">ATTENTION</span>
+                    </div>
+                    <div class="textarea-container">
+                        <textarea id="documents_manquants" name="documents_manquants" placeholder="⚠️ Listez les documents manquants (séparez par des virgules)...">{{project.documents_manquants}}</textarea>
+                        <div class="textarea-decoration">
+                            <span class="warning-pulse">⚠️</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" class="btn btn-primary">
+                        <span>💾 Enregistrer</span>
+                    </button>
+                    <a href="{% url "homepage" %}" style="text-decoration:none;">
+                        <button type="button" class="btn btn-secondary" onclick="cancelForm()">
+                            <span>❌ Annuler</span>
+                        </button>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

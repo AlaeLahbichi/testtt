@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil - {{request.user.username}}</title>
+    <link rel="stylesheet" href="{% static "css/private/profile.css" %}">
+    <link rel="icon" type="image/x-icon" href="{% static 'images/modcod.ico' %}">
+</head>
+<body>
+    <div id="alert-container" style="position: fixed; top: 10px; left: 20px; z-index: 9999;">
+        {% include "../layouts/erreur.html" %}
+    </div>
+    <div class="container">
+        <button class="mobile-menu-btn" onclick="toggleSidebar()">
+            ☰
+        </button>
+
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>Profile</h2>
+                <button class="sidebar-toggle" onclick="toggleSidebar()">
+                    ☰
+                </button>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="{% url "homepage" %}" class="nav-link">
+                        <span class="nav-icon">🏠</span>
+                        <span class="nav-text">Accueil</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url "profile" %}" class="nav-link active">
+                        <span class="nav-icon">👤</span>
+                        <span class="nav-text">Profil</span>
+                    </a>
+                </li>
+                {% if request.user.role == "Admin" %}
+                    <li class="nav-item">
+                        <a href="{% url "dashboardpage" %}" class="nav-link">
+                            <span class="nav-icon">📊</span>
+                            <span class="nav-text">Statistiques</span>
+                        </a>
+                    </li>
+                {% endif %}
+                <li class="nav-item">
+                    <a href="{% url "logout" %}" class="nav-link">
+                        <span class="nav-icon">🚪</span>
+                        <span class="nav-text">Déconnexion</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            <div class="profile-header">
+                <div class="profile-info">
+                    <img src="{{request.user.ProfileImage.url}}" alt="Photo de profil" class="profile-avatar">
+                    <div class="profile-details">
+                        <h1>{{request.user.username}}</h1>
+                        <div class="profile-actions">
+                            <button class="btn btn-primary" onclick="openEditModal()">
+                                ✏️ Modifier le profil
+                            </button>
+                            <button class="btn btn-danger" onclick="openDeleteModal()">
+                                🗑️ Supprimer le compte
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-cards">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon">👤</div>
+                        <h3 class="card-title">Informations personnelles</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-item">
+                            <span class="info-label">Nom d'utilisateur</span>
+                            <span class="info-value">{{request.user.username}}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Prénom</span>
+                            <span class="info-value">{{request.user.last_name}}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Nom</span>
+                            <span class="info-value">{{request.user.first_name}}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Rôle</span>
+                            <span class="info-value">{{request.user.role}}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon">📧</div>
+                        <h3 class="card-title">Contact</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-item">
+                            <span class="info-label">Email</span>
+                            <span class="info-value">{{request.user.email}}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Téléphone</span>
+                            <span class="info-value">{{request.user.phone_number}}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Adresse</span>
+                            <span class="info-value">{{request.user.adress}}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="password-form">
+                <div class="card-header">
+                    <div class="card-icon">🔒</div>
+                    <h3 class="card-title">Changer le mot de passe</h3>
+                </div>
+                <form id="passwordForm" action="{% url "modifypassword" %}" method="POST">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="currentPassword" class="form-label">Mot de passe actuel</label>
+                        <input type="password" name="currentPassword" id="currentPassword" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="newPassword" class="form-label">Nouveau mot de passe</label>
+                        <input type="password" name="newPassword" id="newPassword" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword" class="form-label">Confirmer le mot de passe</label>
+                        <input type="password" name="confirmPassword" id="confirmPassword" class="form-input" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            Mettre à jour
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Modifier le profil</h3>
+                <button class="close-btn" onclick="closeModal('editModal')">&times;</button>
+            </div>
+            <form id="editForm" action="{% url "modifier_profil" %}" method="POST">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="editFirstName" class="form-label">Prénom</label>
+                    <input type="text" id="editFirstName" name="last_name" class="form-input" value="{{request.user.last_name}}">
+                </div>
+                <div class="form-group">
+                    <label for="editLastName" class="form-label">Nom</label>
+                    <input type="text" id="editLastName" name="first_name" class="form-input" value="{{request.user.first_name}}">
+                </div>
+                <div class="form-group">
+                    <label for="editEmail" class="form-label">Email</label>
+                    <input type="email" id="editEmail" name="email" class="form-input" value="{{request.user.email}}">
+                </div>
+                <div class="form-group">
+                    <label for="editPhone" class="form-label">Téléphone</label>
+                    <input type="tel" id="editPhone" name="phone_number" class="form-input" value="{{request.user.phone_number}}">
+                </div>
+                <div class="form-group">
+                    <label for="editAddress" class="form-label">Adresse</label>
+                    <input type="text" id="editAddress" name="adress" class="form-input" value="{{request.user.adress}}">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn" style="background: #e1e5e9; color: #6c757d;" onclick="closeModal('editModal')">
+                        Annuler
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        Sauvegarder
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal" id="deleteModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Supprimer le compte</h3>
+                <button class="close-btn" onclick="closeModal('deleteModal')">&times;</button>
+            </div>
+            <p style="margin-bottom: 1.5rem; color: #6c757d;">
+                Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.
+            </p>
+            <div class="form-actions">
+                <button type="button" class="btn" style="background: #e1e5e9; color: #6c757d;" onclick="closeModal('deleteModal')">
+                    Annuler
+                </button>
+                <a href="{% url "supprimer_own_profile" %}" style="text-decoration:none;">
+                    <button type="button" class="btn btn-danger">
+                        Supprimer définitivement
+                    </button>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('collapsed');
+            
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle('open');
+                sidebar.classList.remove('collapsed');
+            }
+        }
+
+        function openEditModal() {
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        function openDeleteModal() {
+            document.getElementById('deleteModal').style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+
+        window.addEventListener('resize', function() {
+            const sidebar = document.getElementById('sidebar');
+            
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('open');
+            }
+        });
+
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.card').forEach(card => {
+            observer.observe(card);
+        });
+    </script>
+</body>
+</html>

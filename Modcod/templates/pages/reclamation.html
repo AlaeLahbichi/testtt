@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="{% static 'images/modcod.ico' %}">
+    <link rel="stylesheet" href="{% static "css/private/reclamation.css" %}">
+    <title>Service Réclamations</title>
+</head>
+<body>
+    <div id="alert-container" style="position: fixed; top: 10px; left: 20px; z-index: 9999;">
+        {% include "../layouts/erreur.html" %}
+    </div>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="{% url "homepage" %}" class="logo">
+                <img src="{% static "image/Modcod.png" %}" alt="logo of company" style="width:150px;">
+            </a>
+            <ul class="nav-links">
+                <li><a href="{% url "homepage" %}">Accueil</a></li>
+                <li><a href="{% url "display_AV_project" %}">Projet Avant Vente</a></li>
+                <li><a href="{% url "reclamation_page" %}">Réclamations</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="header">
+            <h1>Nouvelle Réclamation</h1>
+            <p>Nous prenons vos préoccupations au sérieux et nous engageons à vous répondre rapidement</p>
+        </div>
+        <div class="status-cards">
+            <div class="status-card">
+                <div class="status-icon">📝</div>
+                <h3>Soumettre</h3>
+                <p>Décrivez votre problème en détail</p>
+            </div>
+            <div class="status-card">
+                <div class="status-icon">🔍</div>
+                <h3>Analyser</h3>
+                <p>Notre équipe examine votre demande</p>
+            </div>
+            <div class="status-card">
+                <div class="status-icon">✅</div>
+                <h3>Résoudre</h3>
+                <p>Nous trouvons la meilleure solution</p>
+            </div>
+        </div>
+        <div class="form-card">
+            <form id="complaintForm" method="POST" action="{% url "create_reclamation" %}">
+                {% csrf_token %}
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="username">Username *</label>
+                        <input type="text" id="username" name="username" class="form-control" value="{{request.user.username|default:''}}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="reference">Numéro de référence</label>
+                        <input type="text" id="reference" name="reference" class="form-control" placeholder="référence, référence modcod , etc.(optionnel)">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="email">Email *</label>
+                        <input type="email" id="email" name="email" class="form-control" value="{{request.user.email|default:''}}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="category">Catégorie de réclamation *</label>
+                        <select id="category" name="category" class="form-control" required>
+                            <option value="">Sélectionnez une catégorie</option>
+                            <option value="Bug technique">Bug technique</option>
+                            <option value="Erreur de données">Erreur de données</option>
+                            <option value="Problème d'affichage">Problème d'affichage</option>
+                            <option value="Fonctionnalité manquante">Fonctionnalité manquante</option>
+                            <option value="Performance lente">Performance lente</option>
+                            <option value="Problème de collaboration">Problème de collaboration</option>
+                            <option value="Problème de fichiers / téléchargements">Problème de fichiers / téléchargements</option>
+                            <option value="Erreurs de permissions">Erreurs de permissions</option>
+                            <option value="Sécurité / Confidentialité">Sécurité / Confidentialité</option>
+                            <option value="Problème d'accès / Authentification">Problème d'accès / Authentification</option>
+                            <option value="autre">Autre</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Niveau de priorité *</label>
+                    <div class="priority-group">
+                        <div class="priority-option">
+                            <input type="radio" id="low" name="priority" value="low" class="priority-radio" required>
+                            <label for="low" class="priority-label">🟢 Faible</label>
+                        </div>
+                        <div class="priority-option">
+                            <input type="radio" id="medium" name="priority" value="medium" class="priority-radio">
+                            <label for="medium" class="priority-label">🟡 Moyen</label>
+                        </div>
+                        <div class="priority-option">
+                            <input type="radio" id="high" name="priority" value="high" class="priority-radio">
+                            <label for="high" class="priority-label">🔴 Urgent</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="subject" style="margin-top:1rem;">Sujet de la réclamation *</label>
+                    <input type="text" id="subject" name="subject" class="form-control" required placeholder="Résumé en quelques mots">
+                </div>
+
+                <div class="form-group">
+                    <label for="description" style="margin-top:1rem;">Description détaillée *</label>
+                    <textarea id="description" name="description" class="form-control" required placeholder="Décrivez votre problème de manière détaillée..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label style="margin-top:1rem;">Pièces jointes</label>
+                    <div class="file-upload" >
+                        <input type="file" id="attachments" name="attachments" class="file-input" multiple accept=".jpg,.jpeg,.png,.pdf,.doc,.docx">
+                        <label for="attachments" class="file-label">
+                            📎 Cliquez pour ajouter des fichiers (optionnel)
+                        </label>
+                    </div>
+                </div>
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-primary">
+                        ✉️ Soumettre la réclamation
+                    </button>
+                    <button type="reset" class="btn btn-secondary">
+                        🔄 Réinitialiser
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('attachments').addEventListener('change', function(e) {
+            const label = document.querySelector('.file-label');
+            const fileCount = e.target.files.length;
+            
+            if (fileCount > 0) {
+                label.innerHTML = `📎 ${fileCount} fichier(s) sélectionné(s)`;
+                label.style.borderColor = '#008b7a';
+                label.style.background = 'rgba(0, 139, 122, 0.1)';
+            } else {
+                label.innerHTML = '📎 Cliquez pour ajouter des fichiers (optionnel)';
+                label.style.borderColor = '#cbd5e0';
+                label.style.background = '#f8f9fa';
+            }
+        });
+
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.status-card, .form-card').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>

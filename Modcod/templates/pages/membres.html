@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static "css/pages/membres.css" %}">
+    <title>Membres de la Plateforme</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'images/modcod.ico' %}">
+</head>
+<body>
+
+    {% include "../layouts/nav.html" %}
+
+    <div class="main-container" style="margin-top:5rem;">
+        <div class="header">
+            <h1>Membres</h1>
+            <p>Découvrez tous les membres de votre plateforme en un seul endroit</p>
+        </div>
+
+        <div class="filters">
+            <div class="filters-grid">
+                <div class="search-container">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" class="search-input" placeholder="Rechercher par nom d'utilisateur..." id="searchInput">
+                </div>
+                
+                <div class="role-filter">
+                    <button class="role-btn active" data-role="all">Tous</button>
+                    <button class="role-btn" data-role="admin">Admin</button>
+                    <button class="role-btn" data-role="user">Utilisateur</button>
+                </div>
+                
+                <div class="members-count" id="membersCount">
+                    <span id="countText">12 membres</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="loading-spinner"></div>
+            <p>Chargement des membres...</p>
+        </div>
+
+        <div class="members-grid" id="membersGrid">
+            {% for user in users  %}
+                {% if user.role != "Utilisateur_Temporaire" %}
+                    <div class="member-card" data-role="{{user.role}}">
+                        <div class="member-avatar">
+                            <img src="{{user.ProfileImage.url}}" alt="{{user.username}}">
+                        </div>
+                        <div class="member-username">{{user.username}}</div>
+                        <div class="member-role role-{% if user.role == "Admin" %}admin{% else %}user{% endif %}">
+                            {{user.role}}
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <div class="empty-state" id="emptyState" style="display: none;">
+            <div class="empty-state-icon">👥</div>
+            <h3>Aucun membre trouvé</h3>
+            <p>Essayez de modifier vos critères de recherche ou filtres.</p>
+        </div>
+    </div>
+    {% include "../data/chatbot.html" %}
+<script src="{% static "js/pages/membres.js" %}"></script>
+
+</body>
+</html>

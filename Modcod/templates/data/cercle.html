@@ -1,0 +1,212 @@
+
+{% load static %}
+    <style>
+
+        .chart-container {
+            width: 60%;
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 75, 73, 0.1);
+            border: 1px solid #e1e5e9;
+        }
+
+        @media (max-width: 768px) {
+            .chart-container {
+                width: 90%;
+                padding: 1rem;
+                margin: 1rem auto;
+            }
+        }
+
+        .chart-title {
+            text-align: center;
+            color: #2c3e50;
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .chart-canvas-container {
+            position: relative;
+            height: 400px;
+            margin: 1rem 0;
+        }
+
+        #etatChart {
+            max-height: 400px;
+            filter: drop-shadow(0 2px 8px rgba(0, 75, 73, 0.15));
+        }
+
+        .chart-container:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 75, 73, 0.15);
+            transition: all 0.3s ease;
+        }
+
+        .chart-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: linear-gradient(135deg, #004b48 0%, #006b66 100%);
+            border-radius: 8px;
+            color: #ffffff;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        :root {
+            --primary-color: #004b48;
+            --secondary-color: #006b66;
+            --accent-color: #2c3e50;
+            --warning-color: #FFA500;
+            --warning-dark: #FF8C00;
+            --bg-light: #f8f9fa;
+            --bg-secondary: #e1e5e9;
+            --bg-tertiary: #cbd5e0;
+            --text-muted: #a0aec0;
+            --text-secondary: #6c757d;
+            --success-color: #008b7a;
+            --success-dark: #004B49;
+            --highlight-color: #FFCB06;
+            --white: #ffffff;
+        }
+
+        .chart-container * {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+    </style>
+    <div class="chart-container">
+        <h2 class="chart-title">États d'avancement des projets</h2>
+        
+        <div class="chart-canvas-container">
+            <canvas id="etatChart"></canvas>
+        </div>
+        
+        <div class="chart-stats">
+            <div class="stat-item">
+                <span class="stat-value" id="totalProjects">--</span>
+                <span class="stat-label">Total projets</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="completedProjects">--</span>
+                <span class="stat-label">Terminés</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="inProgressProjects">--</span>
+                <span class="stat-label">En cours</span>
+            </div>
+        </div>
+    </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<script>
+    const etatLabels = {{ context.etat_labels|safe }};
+    const etatValues = {{ context.etat_percentages|safe }};
+
+    const backgroundColors = [
+        "#004b48", "#006b66", "#2c3e50", "#FFA500", "#FF8C00", 
+        "#008b7a", "#004B49", "#FFCB06", "#6c757d", "#a0aec0"
+    ];
+
+    const borderColors = new Array(etatValues.length).fill("#ffffff");
+
+    const config = {
+        type: "doughnut",
+        data: {
+            labels: etatLabels,
+            datasets: [{
+                data: etatValues,
+                backgroundColor: backgroundColors.slice(0, etatValues.length),
+                borderColor: borderColors,
+                borderWidth: 2,
+                hoverOffset: 8,
+                hoverBorderWidth: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: false
+                },
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        font: {
+                            size: 12,
+                            family: 'Segoe UI'
+                        },
+                        color: '#2c3e50'
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 75, 73, 0.9)',
+                    titleColor: '#ffffff',
+                    bodyColor: '#ffffff',
+                    borderColor: '#006b66',
+                    borderWidth: 1,
+                    cornerRadius: 8,
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.label}: ${context.parsed}%`;
+                        }
+                    }
+                }
+            },
+            animation: {
+                animateScale: true,
+                animateRotate: true,
+                duration: 1500,
+                easing: 'easeInOutQuart'
+            },
+            cutout: '60%'
+        }
+    };
+
+    const etatChart = new Chart(document.getElementById("etatChart"), config);
+
+    function updateStats() {
+        const total = Math.round(etatValues.reduce((a, b) => a + b, 0));
+        const indexTermine = etatLabels.findIndex(label => label.toLowerCase().includes("gagnée") || label.toLowerCase().includes("terminée") || label.toLowerCase().includes("refusée"));
+        const indexEnCours = etatLabels.findIndex(label => label.toLowerCase().includes("cours"));
+
+        const completed = indexTermine !== -1 ? etatValues[indexTermine] : 0;
+        const inProgress = indexEnCours !== -1 ? etatValues[indexEnCours] : 0;
+
+        document.getElementById('totalProjects').textContent = total + "%";
+        document.getElementById('completedProjects').textContent = completed + "%";
+        document.getElementById('inProgressProjects').textContent = inProgress + "%";
+    }
+
+    updateStats();
+</script>

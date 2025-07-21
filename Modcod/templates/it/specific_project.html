@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static "css/it/specific_project.css" %}">
+    <title>Détails de l'Appel d'Offre</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'images/modcod.ico' %}">
+</head>
+<body>
+    <div id="alert-container" style="position: fixed; top: 10px; left: 20px; z-index: 9999;">
+        {% include "../layouts/erreur.html" %}
+    </div>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="{% url "homepage" %}" class="navbar-brand">
+                <img style="width:180px" src="{% static "image/Modcod.png" %}" alt="logo of company">
+            </a>
+            <ul class="navbar-nav" id="navbarNav">
+                <li><a href="#" class="nav-link active">Projet</a></li>
+                <li><a href="{% url "homepage" %}" class="nav-link">Accueil</a></li>
+                {% if request.user.role == "Admin" or request.user.role == "Collaborateur" or request.user.role == "Chef_projet" %}
+                    <li><a href="{% url "dashboardpage" %}" class="nav-link">Dashboard</a></li>
+                {% endif %}
+                {% if request.user.role == "Admin" or request.user.role == "Collaborateur" or request.user.role == "Chef_projet" or request.user.role == "Employe_Integration"  %}
+                <li><a href="{% url "evolution" %}" class="nav-link">Évolution</a></li>
+                {% endif %}
+            </ul>
+            <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                ☰
+            </button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="header-card">
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 class="project-title">Détails du Projet</h1>
+                    <div class="project-ref" id="reference-display">{{project.reference}}</div>
+                </div>
+                <div class="header-actions">
+                    {% if request.user.role != "Utilisateur_Temporaire" and request.user.role != 'Stagiaire' and request.user.role != 'Employe_Integration' and request.user.role != 'Utilisateur_Confirmé'   %}
+                        <a style="text-decoration:none;" href="{% url "Imprimerie" project.id %}">
+                            <button class="action-btn btn-edit">
+                                <span>🖨️</span>
+                                Imprimer
+                            </button>
+                        </a>
+                    {% endif %}
+                    {% if request.user.role != "Utilisateur_Temporaire" and request.user.role != 'Stagiaire' and request.user.role != 'Utilisateur_Confirmé'  %}
+                        <a style="text-decoration:none;" href="{% url "modifier_project_page" project.id %}">
+                            <button class="action-btn btn-edit" onclick="editProject()">
+                                <span>✏️</span>
+                                Modifier
+                            </button>
+                        </a>
+                    {% endif %}
+                    {% if request.user.role == "Admin" %}
+                        <a style="text-decoration:none;" href="{% url "deleteproject2" project.id %}">
+                            <button class="action-btn btn-delete">
+                                <span>🗑️</span>
+                                Supprimer
+                            </button>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="details-section">
+                <div class="section-header">
+                    <div class="section-icon">📋</div>
+                    <h2 class="section-title">Informations Générales</h2>
+                </div>
+
+                <div class="data-row">
+                    <div class="data-label">Référence</div>
+                    <div class="data-value" id="reference">{{project.reference}}</div>
+                </div>
+
+                <div class="data-row">
+                    <div class="data-label">Référence ModCod</div>
+                    <div class="data-value" id="reference_modcod">{{project.reference_modcod}}</div>
+                </div>
+
+                <div class="data-row">
+                    <div class="data-label">Status</div>
+                    <div class="data-value">
+                        {% if project.status == "PEC"  %}
+                            <span class="status-badge status-en-cours" id="etat_avancement">
+                                {{project.status}}
+                            </span>
+                        {% elif project.status == "PG" %}
+                            <span class="status-badge status-termine" id="etat_avancement">
+                                {{project.status}}
+                            </span>
+                        {% elif project.status == "PP" %}
+                            <span class="status-badge status-annule" id="etat_avancement">
+                                {{project.status}}
+                            </span>
+                        {% else %}
+                            <span class="status-badge status-en-attente" id="etat_avancement">
+                                {{project.status}}
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="data-row">
+                    <div class="data-label">Éditeur</div>
+                    <div class="data-value" id="editeur">{% if project.editeur %}{{project.editeur}}{% else %}Undefined{% endif %}</div>
+                </div>
+
+                <div class="data-row">
+                    <div class="data-label">Date limite</div>
+                    <div class="data-value" id="date_limite_reponse">{{project.date_limite_reponse}}</div>
+                </div>
+
+                <div class="data-row">
+                    <div class="data-label">Contexte</div>
+                    <div class="data-value" id="contexte">{% if project.contexte %}{{project.contexte}}{% else %}Rien n’est mentionné dans cette section.{% endif %}</div>
+                </div>
+
+                <div class="data-row">
+                    <div class="data-label">Objet</div>
+                    <div class="data-value" id="objet">{% if project.objet %}{{project.objet}}{% else %}Rien n’est mentionné dans cette section.{% endif %}</div>
+                </div>
+
+                <div class="data-row">
+                    <div class="data-label">Prospectus</div>
+                    <div class="data-value" id="prospectus">{% if project.prospectus %}{{project.prospectus}}{% else %}Undefined{% endif %}</div>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <div class="alert-card" id="documents-alert">
+                    <div class="alert-header">
+                        <span class="alert-icon">⚠️</span>
+                        <span class="alert-title">Documents Manquants</span>
+                    </div>
+                    {% if project.documents_manquants %}
+                        <div class="missing-docs" id="documents_manquants">
+                            <div class="doc-item">{{project.documents_manquants}}</div>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="financial-info">
+                    <div class="financial-title">Caution</div>
+                    <div class="financial-amount" id="caution">{% if project.caution %}{{project.caution}}{% else %}Undefined{% endif %}</div>
+                </div>
+
+                <div class="next-step-card">
+                    <div class="next-step-title">🎯 État d'avancement</div>
+                    <div class="next-step-content" id="etape_suivant">
+                        {% if project.etat_d_avancement %}{{project.etat_d_avancement}}{% else %}Rien n’est mentionné dans cette section.{% endif %}
+                    </div>
+                </div>
+
+                <div class="next-step-card">
+                    <div class="next-step-title">🎯 Prochaine Étape</div>
+                    <div class="next-step-content" id="etape_suivant">
+                        {% if project.etape_suivante %}{{project.etape_suivante}}{% else %}Rien n’est mentionné dans cette section.{% endif %}
+                    </div>
+                </div>
+
+                <div class="date-card">
+                    <div class="date-title">Date de Création</div>
+                    <div class="date-value" id="date_creation">{{project.date_creation}}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function formatStatusClass(status) {
+            const normalized = status.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            return normalized.replace(/\s/g, '-');
+        }
+        function updateProjectDisplay(data) {
+            Object.keys(data).forEach(key => {
+                const element = document.getElementById(key);
+                if (element && key !== 'documents_manquants' && key !== 'etat_avancement') {
+                    element.textContent = data[key];
+                }
+            });
+
+            const refDisplay = document.getElementById('reference-display');
+            if (refDisplay) {
+                refDisplay.textContent = data.reference;
+            }
+
+            const etatElement = document.getElementById('etat_avancement');
+            if (etatElement) {
+                const statusMap = {
+                    'en_cours': { text: 'En cours', class: 'status-en-cours', icon: '🔄' },
+                    'termine': { text: 'Terminé', class: 'status-termine', icon: '✅' },
+                    'en_attente': { text: 'En attente', class: 'status-en-attente', icon: '⏳' },
+                    'annule': { text: 'Annulé', class: 'status-annule', icon: '❌' }
+                };
+                
+                const status = statusMap[data.etat_avancement] || statusMap['en_cours'];
+                etatElement.innerHTML = `<span>${status.icon}</span> ${status.text}`;
+                etatElement.className = `status-badge ${status.class}`;
+            }
+
+            const documentsContainer = document.getElementById('documents_manquants');
+            const documentsAlert = document.getElementById('documents-alert');
+            
+            if (documentsContainer && data.documents_manquants) {
+                if (data.documents_manquants.length > 0) {
+                    documentsContainer.innerHTML = data.documents_manquants
+                        .map(doc => `<div class="doc-item">${doc}</div>`)
+                        .join('');
+                    documentsAlert.style.display = 'block';
+                } else {
+                    documentsAlert.style.display = 'none';
+                }
+            }
+        }
+
+        function updateProject(newData) {
+            updateProjectDisplay(mergedData);
+        }
+
+        // Gestion du menu mobile
+        function toggleMobileMenu() {
+            const navbarNav = document.getElementById('navbarNav');
+            const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+            
+            navbarNav.classList.toggle('active');
+            mobileMenuToggle.textContent = navbarNav.classList.contains('active') ? '✕' : '☰';
+        }
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+            mobileMenuToggle.addEventListener('click', toggleMobileMenu);
+            
+            document.addEventListener('click', function(event) {
+                const navbar = document.querySelector('.navbar');
+                const navbarNav = document.getElementById('navbarNav');
+                
+                if (!navbar.contains(event.target) && navbarNav.classList.contains('active')) {
+                    navbarNav.classList.remove('active');
+                    mobileMenuToggle.textContent = '☰';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

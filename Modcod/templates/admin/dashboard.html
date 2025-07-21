@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="{% static "css/admin/dashboard.css" %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Gestion</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'images/modcod.ico' %}">
+</head>
+<body>
+    <div id="alert-container" style="position: fixed; top: 10px; left: 20px; z-index: 9999;">
+        {% include "../layouts/erreur.html" %}
+    </div>
+    <div class="dashboard-container">
+        <button class="menu-toggle" id="menu-toggle" onclick="toggleSidebar()">☰</button>
+        
+        <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+        
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header" style="text-align:center;">
+                <h2 style="font-size:2rem;">Dashboard</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-item active" onclick="showSection('dashboard')">
+                    <i>📊</i>
+                    <span>Tableau de bord</span>
+                </div>
+                {% if request.user.role == "Admin" %}
+                <div class="nav-item" onclick="showSection('users')">
+                    <i>👥</i>
+                    <span>Utilisateurs</span>
+                </div>
+                {% endif %}
+                <div class="nav-item" onclick="showSection('projects')">
+                    <i>📁</i>
+                    <span>Projets</span>
+                </div>
+                {% if request.user.role == "Admin"  %}
+                    <div class="nav-item">
+                        <a href="{% url "Gestion_Reclamation" %}" style="text-decoration:none;color:white;"><i>❗</i></a>
+                        <a href="{% url "Gestion_Reclamation" %}" style="text-decoration:none;color:white;"><span>Réclamation</span></a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="{% url "Logs_Page" %}" style="text-decoration:none;color:white;"><i>📜</i></a>
+                        <a href="{% url "Logs_Page" %}" style="text-decoration:none;color:white;"><span>Logs</span></a>
+                    </div>
+                {% endif %}
+                <div class="nav-item">
+                    <a href="{% url "homepage" %}" style="text-decoration:none;color:white;"><i>🏠</i></a>
+                    <a href="{% url "homepage" %}" style="text-decoration:none;color:white;"><span>Accueil</span></a>
+                </div>
+            </nav>
+        </div>
+
+        <div class="main-content">
+            <div id="dashboard-section" class="content-section">
+                <div class="content-header">
+                    <h1>Tableau de bord</h1>
+                    <p>Vue d'ensemble de votre plateforme</p>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card users">
+                        <h3 id="total-users">{{count.user}}</h3>
+                        <p>Utilisateurs totaux</p>
+                    </div>
+                    <div class="stat-card projects">
+                        <h3 id="total-projects">{{count.project_gagnée}}</h3>
+                        <p>Projets gagnées</p>
+                    </div>
+                    <div class="stat-card active">
+                        <h3 id="active-users">{{count.project_refusée}}</h3>
+                        <p>Projets refusées</p>
+                    </div>
+                    <div class="stat-card completed">
+                        <h3 id="completed-projects">{{count.Project_avantvente}}</h3>
+                        <p>Projets avant ventes</p>
+                    </div>
+                </div>
+                {% include "../data/cercle.html" %}
+            </div>
+
+            <div id="users-section" class="content-section hidden">
+                <div class="content-header">
+                    <h1>Gestion des utilisateurs</h1>
+                    <p>Gérez les utilisateurs de votre plateforme</p>
+                </div>
+
+                <div class="search-container">
+                    <input type="text" class="search-input" placeholder="Rechercher un utilisateur..." onkeyup="searchUsers(this.value)">
+                </div>
+
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3>Liste des utilisateurs</h3>
+                    </div>
+                    <table id="users-table">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center;">Nom</th>
+                                <th style="text-align:center;">Email</th>
+                                <th style="text-align:center;">Rôle</th>
+                                <th style="text-align:center;">Statut</th>
+                                <th style="text-align:center;">Date création</th>
+                                <th style="text-align:center;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-tbody">
+                            {% for user in users  %}
+                                <tr>
+                                    <td style="text-align:center;" class="username">{{user.username}}</td>
+                                    <td style="text-align:center;">{% if user.email %}{{ user.email }}{% else %}<span class="undefined">❓ Undefined</span>{% endif %}</td>
+                                    <td style="text-align:center;">{{user.role}}</td>
+                                    <td style="text-align:center;"><span style="font-size:1.1rem;" class="status ${user.status.toLowerCase()}">{% if user.is_active %}✅{% else %}❌{% endif %}</span></td>
+                                    <td style="text-align:center;">{{user.date_joined}}</td>
+                                    <td class="actions" style="align-items:center;justify-content:center;display:flex;" >
+                                    <a href="{% url "Visualiser_Other" user.id %}" style="text-decoration:none;"><button style="text-align:center;" class="btn btn-info" onclick="viewUser(${user.id})">👁️ Voir</button></a>
+                                    {% if user.role == "Utilisateur_Temporaire" %}
+                                        <a href="{% url "Confirmer_New_User" user.id %}" style="text-decoration:none;"><button style="text-align:center;" class="btn btn-info">✅ Confirmer</button></a>
+                                    {% elif user.role != "Utilisateur_Temporaire" and user.id != request.user.id %}
+                                        <a href="{% url "profile" %}" style="text-decoration:none;"><button style="text-align:center;" class="btn btn-info">✏️ Modifier</button></a>
+                                    {% endif %}
+                                    <a href="{% url "supprimer_user_dahsboard" user.id %}" style="text-decoration:none;"><button style="text-align:center;" class="btn btn-danger">🗑️ Supprimer</button></a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="projects-section" class="content-section hidden">
+                <div class="content-header">
+                    <h1>Gestion des projets</h1>
+                    <p>Visualisez et gérez vos projets</p>
+                </div>
+
+                <div class="search-container">
+                    <input type="text" class="search-input" placeholder="Rechercher un projet..." onkeyup="searchProjects(this.value)">
+                </div>
+
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3>Liste des projets</h3>
+                    </div>
+                    <table id="projects-table">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center;">Référence</th>
+                                <th style="text-align:center;">Référence Modcod</th>
+                                <th style="text-align:center;">Éditeur</th>
+                                <th style="text-align:center;">État</th>
+                                <th style="text-align:center;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="projects-tbody">
+                            {% for project in projects  %}
+                            <tr>
+                                <td class="reference" style="text-align:center;">{{project.reference}}</td>
+                                <td class="reference_modcod" style="text-align:center;">{{project.reference_modcod}}</td>
+                                <td class="editeur" style="text-align:center;">{{project.editeur}}</td>
+                                <td style="text-align:center;">{{project.status}}</td>
+                                <td class="actions" style="align-items:center;justify-content:center;display:flex;" >
+                                    <a href="{% url "modifier_project_page" project.id %}"><button style="text-align:center;" class="btn btn-warning" onclick="editProject(${project.id})">✏️ Modifier</button></a>
+                                    {% if request.user.role == "Admin" %}
+                                        <a href="{% url "deleteproject" project.id %}"><button style="text-align:center;" class="btn btn-danger">🗑️ Supprimer</button></a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% include "../data/chatbot.html" %}
+    <script src="{% static "js/admin/index.js" %}"></script>
+</body>
+</html>

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Gestion des Réclamations - Dashboard Admin</title>
+    <link rel="stylesheet" href="{% static "css/private/gestion_reclamation.css" %}">
+    <link rel="icon" type="image/x-icon" href="{% static 'images/modcod.ico' %}">
+</head>
+<body>
+    {% include "../layouts/nav.html" %}
+    <div id="alert-container" style="position: fixed; top: 10px; left: 20px; z-index: 9999;">
+        {% include "../layouts/erreur.html" %}
+    </div>
+    <div class="container" style="margin-top:5rem;">
+        <div class="header">
+            <h1>🎯 Gestion des Réclamations</h1>
+            <p>Dashboard administrateur - Suivi et traitement des demandes clients</p>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalCount">0</div>
+                <div class="stat-label">Total réclamations</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="urgentCount">{{faible}}</div>
+                <div class="stat-label">Faibles</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="pendingCount">{{moyen}}</div>
+                <div class="stat-label">Moyennes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="resolvedCount">{{urgent}}</div>
+                <div class="stat-label">Urgentes</div>
+            </div>
+        </div>
+
+        <div class="filters-section">
+            <div class="filters-title">
+                🔍 Filtres de recherche
+            </div>
+            <div class="filters-grid">
+                <div class="filter-group">
+                    <label for="categoryFilter">Catégorie</label>
+                    <select id="categoryFilter" class="filter-input">
+                        <option value="">Toutes les catégories</option>
+                        <option value="bug technique">Bug technique</option>
+                        <option value="erreur de données">Erreur de données</option>
+                        <option value="problème d'affichage">Problème d'affichage</option>
+                        <option value="fonctionnalité manquante">Fonctionnalité manquante</option>
+                        <option value="performance lente">Performance lente</option>
+                        <option value="problème de collaboration">Problème de collaboration</option>
+                        <option value="problème de fichiers / téléchargements">Problème de fichiers / téléchargements</option>
+                        <option value="erreurs de permissions">Erreurs de permissions</option>
+                        <option value="sécurité / confidentialité">Sécurité / Confidentialité</option>
+                        <option value="problème d'accès / authentification">Problème d'accès / Authentification</option>
+                        <option value="autre">Autre</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="priorityFilter">Priorité</label>
+                    <select id="priorityFilter" class="filter-input">
+                        <option value="">Toutes les priorités</option>
+                        <option value="faible">Faible</option>
+                        <option value="moyen">Moyen</option>
+                        <option value="urgent">Urgent</option>
+                        <option value="not defined">Non défini</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="statusFilter">Statut</label>
+                    <select id="statusFilter" class="filter-input">
+                        <option value="">Tous les statuts</option>
+                        <option value="en attente">En attente</option>
+                        <option value="en cours">En cours</option>
+                        <option value="résolu">Résolu</option>
+                        <option value="non résolu">Non résolu</option>
+                    </select>
+                </div>
+                <div class="filter-group search-group">
+                    <label for="searchFilter">Recherche</label>
+                    <input type="text" id="searchFilter" class="filter-input" placeholder="Rechercher par nom, email, référence, sujet...">
+                </div>
+                <div class="filter-group">
+                    <button class="reset-btn" onclick="resetFilters()">Réinitialiser</button>
+                </div>
+            </div>
+        </div>
+        <div class="claims-section">
+            <div class="claims-header">
+                <div class="claims-title">📋 Liste des réclamations</div>
+                <div class="claims-count">
+                    <span id="visibleCount">0</span> réclamation(s) affichée(s)
+                </div>
+            </div>
+            <div class="claims-list" id="claimsList">
+                {% for r in reclamations %}
+                <div class="claim-item" 
+                     data-category="{{ r.catégorie|lower }}"
+                     data-priority="{{ r.priorité|lower }}"
+                     data-status="{{ r.status|lower }}"
+                     data-search-text="{{ r.username|lower }} {{ r.email|lower }} {{ r.référence|default:''|lower }} {{ r.sujet|lower }} {{ r.description|lower }}">
+                    <div class="claim-header">
+                        <div class="claim-main-info">
+                            <div class="claim-title">{{ r.sujet }}</div>
+                            <div class="claim-meta">
+                                <span><strong>{{ r.username }}</strong></span>
+                                <span>📧 <a style="text-decoration:none;font-weight:bolder;color:black;" href="mailto:{{ r.email }}">{{ r.email }}</a></span>
+                                <span>📄 Réf: {{ r.référence }}</span>
+                                <span>📅 {{ r.date_creation|date:"d/m/Y" }} à {{ r.date_creation|time:"H:i" }}</span>
+                                {% if r.piece %}
+                                    <span>
+                                        <a style="color:black;" href="{{ r.piece.url }}" download class="btn-download">
+                                            📎 Télécharger la pièce jointe
+                                        </a>
+                                    </span>
+                                {% else %}
+                                    <span>Aucune pièce jointe</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="claim-badges">
+                            {% if r.status == "En attente" %}
+                                <span class="badge category-badge"><a href="{% url "Passer_En_Cours" r.id %}" style="text-decoration:none;">⏭️</a></span>
+                            {% endif %}
+                            {% if r.status == "En cours" %}
+                                <span class="badge category-badge"><a href="{% url "Accept_Reclamation" r.id %}" style="text-decoration:none;">✅</a></span>
+                                <span class="badge category-badge"><a href="{% url "Refuse_Reclamation" r.id %}" style="text-decoration:none;">❌</a></span>
+                            {% endif %}
+                            <span class="badge category-badge">{{ r.catégorie }}</span>
+                            <span class="badge priority-{{ r.priorité|lower|slugify }}">{{ r.priorité }}</span>
+                            <span class="badge status-badge status-{{ r.status|lower|slugify }}">{{ r.status }}</span>
+                        </div>
+                    </div>
+                    <div class="claim-description">{{ r.description|truncatechars:150 }}</div>
+                </div>
+                {% empty %}
+                <div class="no-claims">Aucune réclamation trouvée.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const categoryFilter = document.getElementById('categoryFilter');
+        const priorityFilter = document.getElementById('priorityFilter');
+        const statusFilter = document.getElementById('statusFilter');
+        const searchFilter = document.getElementById('searchFilter');
+        const claimsList = document.getElementById('claimsList');
+        const claims = claimsList.querySelectorAll('.claim-item');
+
+        // Update statistics
+        function updateStatistics() {
+            const totalCount = claims.length;
+            document.getElementById('totalCount').textContent = totalCount;
+        }
+
+        function applyFilters() {
+            const category = categoryFilter.value.toLowerCase();
+            const priority = priorityFilter.value.toLowerCase();
+            const status = statusFilter.value.toLowerCase();
+            const search = searchFilter.value.toLowerCase();
+
+            let visibleCount = 0;
+
+            claims.forEach(claim => {
+                const cCat = claim.dataset.category;
+                const cPri = claim.dataset.priority;
+                const cSta = claim.dataset.status;
+                const cText = claim.dataset.searchText;
+
+                const matchesCategory = !category || cCat === category;
+                const matchesPriority = !priority || cPri === priority;
+                const matchesStatus = !status || cSta === status;
+                const matchesSearch = !search || cText.includes(search);
+
+                if(matchesCategory && matchesPriority && matchesStatus && matchesSearch){
+                    claim.style.display = '';
+                    visibleCount++;
+                } else {
+                    claim.style.display = 'none';
+                }
+            });
+
+            document.getElementById('visibleCount').textContent = visibleCount;
+
+            const existingNoResults = document.querySelector('.no-claims');
+            if (existingNoResults) {
+                existingNoResults.remove();
+            }
+
+            if (visibleCount === 0 && claims.length > 0) {
+                const noResults = document.createElement('div');
+                noResults.className = 'no-claims';
+                noResults.textContent = 'Aucune réclamation ne correspond aux critères de recherche.';
+                claimsList.appendChild(noResults);
+            }
+        }
+
+        function resetFilters() {
+            categoryFilter.value = '';
+            priorityFilter.value = '';
+            statusFilter.value = '';
+            searchFilter.value = '';
+            applyFilters();
+        }
+
+        categoryFilter.addEventListener('change', applyFilters);
+        priorityFilter.addEventListener('change', applyFilters);
+        statusFilter.addEventListener('change', applyFilters);
+        searchFilter.addEventListener('input', applyFilters);
+
+        updateStatistics();
+        applyFilters();
+
+        claims.forEach(claim => {
+            claim.addEventListener('click', function() {
+                console.log('Claim clicked:', this.dataset);
+            });
+        });
+    </script>
+</body>
+</html>

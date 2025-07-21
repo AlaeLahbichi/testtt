@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="">
+    <link rel="stylesheet" href="{% static "css/auth.css" %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'images/modcod.ico' %}">
+</head>
+<body>
+    <div id="alert-container" style="position: fixed; top: 10px; left: 20px; z-index: 9999;">
+        {% include "../layouts/erreur.html" %}
+    </div>
+    <div class="container" style="position: relative;">
+        <div class="left">
+            <img src="{% static "image/Modcod.png" %}" alt="logo of company">
+        </div>
+        <div class="right">
+            <form action="" method="POST">
+                {% csrf_token %}
+                <h1>Register</h1>
+                <div>
+                    {{ form.username }}
+                </div>
+                <div style="position:relative;">
+                    {{ form.email }}
+                    <i class="fa-solid fa-envelope"></i>
+                </div>
+                <div style="position:relative";>
+                    {{ form.password1}}
+                    <i class="fa-solid fa-eye-slash toggle-password" ></i>
+                </div>
+                <div style="position:relative";>
+                    {{ form.password2 }}
+                    <i class="fa-solid fa-eye-slash toggle-password" ></i>
+                </div>
+                <div class="btn">
+                    <button type="submit">Valider</button>
+                </div>
+                <div class="other">
+                    <p>Vous avez déjà un compte? <a href="{% url "login_page" %}"> Se connecter</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script src="{% static "js/auth/index.js" %}"></script>
+    <script src="https://kit.fontawesome.com/1153728611.js" crossorigin="anonymous"></script>
+</body>
+</html>

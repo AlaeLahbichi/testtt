@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil - {{request.user.username}}</title>
+    <link rel="stylesheet" href="{% static "css/private/profile.css" %}">
+    <link rel="icon" type="image/x-icon" href="{% static 'images/modcod.ico' %}">
+</head>
+<body>
+    <div id="alert-container" style="position: fixed; top: 10px; left: 20px; z-index: 9999;">
+        {% include "../layouts/erreur.html" %}
+    </div>
+    <div class="container">
+        <button class="mobile-menu-btn" onclick="toggleSidebar()">
+            ☰
+        </button>
+
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>Profile</h2>
+                <button class="sidebar-toggle" onclick="toggleSidebar()">
+                    ☰
+                </button>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="{% url "homepage" %}" class="nav-link">
+                        <span class="nav-icon">🏠</span>
+                        <span class="nav-text">Accueil</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url "profile" %}" class="nav-link active">
+                        <span class="nav-icon">👤</span>
+                        <span class="nav-text">Profil</span>
+                    </a>
+                </li>
+                {% if request.user.role == "Admin" %}
+                    <li class="nav-item">
+                        <a href="{% url "dashboardpage" %}" class="nav-link">
+                            <span class="nav-icon">📊</span>
+                            <span class="nav-text">Statistiques</span>
+                        </a>
+                    </li>
+                {% endif %}
+                <li class="nav-item">
+                    <a href="{% url "logout" %}" class="nav-link">
+                        <span class="nav-icon">🚪</span>
+                        <span class="nav-text">Déconnexion</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            <div class="profile-header">
+                <div class="profile-info">
+                    <img src="{{user.ProfileImage.url}}" alt="Photo de profil" class="profile-avatar">
+                    <div class="profile-details">
+                        <h1>{{user.username}}</h1>
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-cards">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon">👤</div>
+                        <h3 class="card-title">Informations personnelles</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-item">
+                            <span class="info-label">Nom d'utilisateur</span>
+                            <span class="info-value">{{user.username}}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Prénom</span>
+                            <span class="info-value">{{user.last_name}}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Nom</span>
+                            <span class="info-value">{{user.first_name}}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Rôle</span>
+                            <span class="info-value">{{user.role}}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon">📧</div>
+                        <h3 class="card-title">Contact</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-item">
+                            <span class="info-label">Email</span>
+                            <span class="info-value">{{user.email}}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Téléphone</span>
+                            <span class="info-value">{{user.phone_number}}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Adresse</span>
+                            <span class="info-value">{{user.adress}}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('collapsed');
+            
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle('open');
+                sidebar.classList.remove('collapsed');
+            }
+        }
+
+        function openEditModal() {
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        function openDeleteModal() {
+            document.getElementById('deleteModal').style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+
+        window.addEventListener('resize', function() {
+            const sidebar = document.getElementById('sidebar');
+            
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('open');
+            }
+        });
+
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.card').forEach(card => {
+            observer.observe(card);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,162 @@
+{% load static %}
+<link rel="stylesheet" href="{% static "css/layouts/erreur.css" %}">
+{% if messages %}
+{% for message in messages %}
+        {% if "success" in message.tags %}
+            <div class="alert alert-success" data-alert="success" role="alert">
+                <div class="alert-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="alert-content">
+                    <div class="alert-title" style="text-decoration:none;color:white;">Succès</div>
+                    <div class="alert-message">{{ message }}</div>
+                </div>
+                <button class="alert-close" onclick="closeAlert(this)" aria-label="Fermer">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <div class="alert-progress"></div>
+            </div>
+        {% endif %}
+        
+        {% if "error" in message.tags %}
+            <div class="alert alert-error" data-alert="error" role="alert">
+                <div class="alert-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 9V13M12 17H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="alert-content">
+                    <div class="alert-title">Erreur</div>
+                    <div class="alert-message">
+                        {% if form.errors %}
+                            {% for field, errors in form.errors.items %}
+                                {% for error in errors %}
+                                    <div class="error-item">
+                                        {% if field != '__all__' %}
+                                            <strong>{{ field|title }} :</strong> 
+                                        {% endif %}
+                                        {{ error }}
+                                    </div>
+                                {% endfor %}
+                            {% endfor %}
+                        {% else %}
+                            {{ message }}
+                        {% endif %}
+                    </div>
+                </div>
+                <button class="alert-close" onclick="closeAlert(this)" aria-label="Fermer">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <div class="alert-progress"></div>
+            </div>
+        {% endif %}
+        
+        {% if "warning" in message.tags %}
+            <div class="alert alert-warning" data-alert="warning" role="alert">
+                <div class="alert-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 9V13M12 17H12.01M10.29 3.86L1.82 18A2 2 0 0 0 3.24 21H20.76A2 2 0 0 0 22.18 18L13.71 3.86A2 2 0 0 0 10.29 3.86Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="alert-content">
+                    <div class="alert-title" style="text-decoration:none;">Attention</div>
+                    <div class="alert-message">{{ message }}</div>
+                </div>
+                <button class="alert-close" onclick="closeAlert(this)" aria-label="Fermer">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <div class="alert-progress"></div>
+            </div>
+        {% endif %}
+        
+        {% if "info" in message.tags %}
+            <div class="alert alert-info" data-alert="info" role="alert">
+                <div class="alert-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 16V12M12 8H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="alert-content">
+                    <div class="alert-title" style="text-decoration:none;">Information</div>
+                    <div class="alert-message">{{ message }}</div>
+                </div>
+                <button class="alert-close" onclick="closeAlert(this)" aria-label="Fermer">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <div class="alert-progress"></div>
+            </div>
+        {% endif %}
+    {% endfor %}
+{% endif %}
+<script> 
+    function closeAlert(button) {
+    const alert = button.closest('.alert');
+    alert.classList.add('fade-out');
+    setTimeout(() => {
+        alert.remove();
+        repositionAlerts();
+    }, 500);
+    }
+
+    function repositionAlerts() {
+    const alerts = document.querySelectorAll('.alert:not(.fade-out)');
+    alerts.forEach((alert, index) => {
+        alert.style.top = `${20 + index * 80}px`;
+    });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+    const alerts = document.querySelectorAll('.alert');
+
+    alerts.forEach((alert, index) => {
+        alert.style.animationDelay = `${index * 0.2}s`;
+
+        setTimeout(() => {
+            if (alert && !alert.classList.contains('fade-out')) {
+                alert.classList.add('fade-out');
+                setTimeout(() => {
+                    alert.remove();
+                    repositionAlerts();
+                }, 500);
+            }
+        }, 3000 + index * 1000); 
+
+        alert.addEventListener('mouseenter', function () {
+            const progress = alert.querySelector('.alert-progress');
+            if (progress) {
+                progress.style.animationPlayState = 'paused';
+            }
+        });
+
+        alert.addEventListener('mouseleave', function () {
+            const progress = alert.querySelector('.alert-progress');
+            if (progress) {
+                progress.style.animationPlayState = 'running';
+            }
+        });
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            const alerts = document.querySelectorAll('.alert:not(.fade-out)');
+            if (alerts.length > 0) {
+                const lastAlert = alerts[alerts.length - 1];
+                const closeBtn = lastAlert.querySelector('.alert-close');
+                if (closeBtn) {
+                    closeAlert(closeBtn);
+                }
+            }
+        }
+    });
+    });
+</script>
