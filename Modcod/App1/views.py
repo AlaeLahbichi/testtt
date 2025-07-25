@@ -8,8 +8,8 @@ from django.contrib.auth.decorators import login_required # type: ignor
 from django.core.exceptions import PermissionDenied
 from django.db import DatabaseError
 from django.core.exceptions import ObjectDoesNotExist
-from django.contrib.auth import update_session_auth_hash
-from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth import update_session_auth_hash # type: ignore
+from django.contrib.auth.password_validation import validate_password # type: ignore
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.http import JsonResponse
@@ -31,6 +31,10 @@ from django.template.loader import render_to_string
 from weasyprint import HTML # type: ignore
 from django.utils.timesince import timesince
 from django.utils.timezone import now
+from django.db.models.functions import Lower
+from django.contrib.auth.hashers import make_password
+from django.db.models import Case, When, IntegerField
+
 
 
 #Authentification
@@ -98,10 +102,15 @@ def DashboardPage(request):
     Projects = Project.objects.all()
     count = {
         "user" : CustomUser.objects.all().count() , 
+        "Project_Total" : Project.objects.all().count(),
         "project_gagnée" : Project.objects.filter(status = "PG").count() , 
         "project_refusée" : Project.objects.filter(status = "PP").count() ,
         "Project_avant_vente" : Project.objects.filter(status = "PA").count(),
         "Project_En_Cours" : Project.objects.filter(status = "PEC").count(),
+        "Project_Annulé" : Project.objects.filter(status = "PAN").count(),
+        "Project_Soumis" : Project.objects.filter(status = "PS").count(),
+        "Project_Autre" : Project.objects.filter(status = "AU").count(),
+        "Projet_En_Attente_De_Soumission" : Project.objects.filter(status = "PAS").count(),
     }
     etat_data = Project.objects.values('status').annotate(total=Count('status'))
     total = sum(item['total'] for item in etat_data) or 1  
@@ -117,7 +126,8 @@ def Profile_Page(request):
     return render(request,"private/profile.html")
 @login_required(login_url="/modcod/login")
 def create_ao(request):
-    clients = Client.objects.all()
+    #changement 2 
+    clients = Client.objects.all().annotate(username_lower=Lower('username')).order_by('username_lower')
     return render(request,"pages/create_ao.html",{'clients' : clients,"main":"create"})
 @login_required(login_url="/modcod/login")
 def evolution(request):
@@ -135,23 +145,47 @@ def test(request):
     return render(request,"it/test.html")
 @login_required(login_url="/modcod/login")
 def Get_main_project(request):
-    projects = Project.objects.exclude(status="PA").order_by('-date_creation')
+    projects = Project.objects.exclude(status="PA").annotate(
+        status_order=Case(
+            When(status='PAS', then=0),
+            When(status='PS', then=1),
+            When(status='PG', then=2),
+            When(status='PP', then=3),
+            When(status='PAN', then=4),
+            When(status='AU', then=5),
+            When(status='PEC', then=6),
+            default=7,
+            output_field=IntegerField(),
+        )
+    ).order_by('status_order', '-date_limite_reponse')
     data = list(projects.values(
-        'id', 'reference', 'reference_modcod', 'objet', 'date_limite_reponse',
+        'id', 'client__username' , 'reference', 'reference_modcod', 'objet', 'date_limite_reponse',
         'prospectus', 'editeur', 'documents_manquants', 'contexte', 'etat_d_avancement','status'
     ))
     editeurs_uniques = list(
-        Project.objects.exclude(editeur__isnull=True)
-        .exclude(editeur__exact='')
-        .values_list('editeur', flat=True)
-        .distinct()
+        Project.objects
+            .exclude(editeur__isnull=True)
+            .exclude(editeur__exact='')
+            .annotate(editeur_lower=Lower('editeur'))
+            .order_by('editeur_lower')
+            .values_list('editeur', flat=True)
+            .distinct()
     )
-    return JsonResponse({'projects': data, 'editeurs': editeurs_uniques})
+    clients_uniques = list(
+        Project.objects
+            .exclude(client__username__isnull=True)
+            .exclude(client__username__exact='')
+            .annotate(client_lower=Lower('client__username'))
+            .order_by('client_lower')
+            .values_list('client__username', flat=True)
+            .distinct()
+    )
+    return JsonResponse({'projects': data, 'editeurs': editeurs_uniques , 'clients' : clients_uniques})
 @login_required(login_url="/modcod/login")
 def Get_AV_project(request):
-    projects = Project.objects.filter(status="PA").order_by('-date_creation')
+    projects = Project.objects.filter(status="PA").order_by('-date_limite_reponse')
     data = list(projects.values(
-        'id', 'reference', 'reference_modcod', 'objet', 'date_limite_reponse',
+        'id', 'client__username' ,  'reference', 'reference_modcod', 'objet', 'date_limite_reponse',
         'prospectus', 'editeur', 'documents_manquants', 'contexte', 'etat_d_avancement','status'
     ))
     editeurs_uniques = list(
@@ -160,7 +194,16 @@ def Get_AV_project(request):
         .values_list('editeur', flat=True)
         .distinct()
     )
-    return JsonResponse({'projects': data, 'editeurs': editeurs_uniques})
+    clients_uniques = list(
+        Project.objects
+            .exclude(client__username__isnull=True)
+            .exclude(client__username__exact='')
+            .annotate(client_lower=Lower('client__username'))
+            .order_by('client_lower')
+            .values_list('client__username', flat=True)
+            .distinct()
+    )
+    return JsonResponse({'projects': data, 'editeurs': editeurs_uniques,'clients' : clients_uniques})
 @login_required(login_url="/modcod/login")
 def Get_specific_project(request, project_id):
     try:
@@ -208,20 +251,18 @@ def supprimer_user(request, user_id):
 @login_required(login_url="/modcod/login")
 def supprimer_own_profile(request):
     try:
-        user = request.user
-        logout(request)
-        user.delete()
+        request.user.delete()
         messages.success(request, "Suppression de votre compte avec succès.")
         return redirect('login_page')
     except ObjectDoesNotExist:
         messages.error(request, "Utilisateur introuvable.")
-        return redirect('login_page')
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
     except DatabaseError as e:
         messages.error(request, f"Erreur de base de données : {str(e)}")
-        return redirect('login_page')
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
     except Exception as e:
         messages.error(request, f"Une erreur inattendue s'est produite : {str(e)}")
-        return redirect('login_page')
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
 @login_required(login_url='/modcod/login')
 def changer_mot_de_passe(request):
     if request.method == "POST":
@@ -548,8 +589,8 @@ def create_project(request):
                 messages.success(request,"Le client que vous avez saisi n'existe pas dans la base de donnée merci de l'ajouter au niveau du dashboard")
                 return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
             caution = request.POST.get('caution','ELECTRONIQUE')
-            montant_caution = request.POST.get('montant_caution','0.00')
-            estimation_projet = request.POST.get('estimation_projet','0.00')
+            montant_caution = request.POST.get('montant_caution', '' )
+            estimation_projet = request.POST.get('estimation_projet', '' )
             delai_execution = request.POST.get('date_execution')
             prospectus = request.POST.get('prospectus')
             editeur = request.POST.get('editeur', '').strip()
@@ -557,6 +598,7 @@ def create_project(request):
             etape_suivante = request.POST.get('etape_suivant', '').strip()
             contexte = request.POST.get('contexte', '').strip()
             documents_manquants = request.POST.get('documents_manquants', '').strip()
+            technologie = request.POST.get('technologie')
             status = request.POST.get('status','PA')
             if not reference or not reference_modcod or not objet or not date_limite:
                 messages.warning(request, "Les champs Référence, Référence ModCod, Objet et Date Limite sont obligatoires.")
@@ -574,6 +616,7 @@ def create_project(request):
                 prospectus=prospectus if prospectus else None,
                 editeur=editeur,
                 contexte=contexte,
+                technologie=technologie,
                 documents_manquants=documents_manquants,
                 etat_d_avancement=etat_d_avancement,
                 etape_suivante=etape_suivante,
@@ -598,7 +641,8 @@ def modifier_project_page(request, project_id):
         if not isinstance(project_id, int):
             return HttpResponseBadRequest("ID de projet invalide.")
         project = get_object_or_404(Project, id=project_id)
-        clients = Client.objects.all()
+        #changement 1 
+        clients = Client.objects.all().annotate(username_lower=Lower('username')).order_by('username_lower')
         return render(request, "pages/modifier_Ao.html", {'project': project , 'clients' : clients})
     except Project.DoesNotExist as e :
         return messages.error(e)
@@ -616,8 +660,9 @@ def edit_project(request, project_id):
         project.reference_modcod = request.POST.get('reference_modcod', '')
         project.objet = request.POST.get('objet', '')
         client = request.POST.get('client','')
-        project.montant_caution = request.POST.get('montant_caution')
-        project.estimation_projet = request.POST.get('estimation_projet')
+        project.montant_caution = request.POST.get('montant_caution','')
+        project.estimation_projet = request.POST.get('estimation_projet','')
+        project.technologie = request.POST.get('technologie')
         try:
             c = get_object_or_404(Client, username=client)
             project.client = c 
@@ -786,7 +831,7 @@ def Logs_Page(request):
 #Client
 @login_required(login_url="/modcod/login")
 def Client_Page(request):
-    clients = Client.objects.all()
+    clients = Client.objects.all().annotate(client_lower=Lower('username')).order_by('client_lower')
     total = Client.objects.count()
     return render(request,'pages/client.html',{'total':total , 'clients':clients })
 @login_required(login_url="/modcod/login")
@@ -800,6 +845,7 @@ def Créer_Client(request):
             Client.objects.create(username=username)
             messages.success(request, f"Le client '{username}' a été enregistré avec succès.")
         return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+@login_required(login_url="/modcod/login")
 def Supprimer_Client(request,client_id):
     try : 
         client = get_object_or_404(Client , id = client_id )
@@ -809,6 +855,7 @@ def Supprimer_Client(request,client_id):
     except Client.DoesNotExist :
         messages.error(request,f"Le clinet d'id {client_id} n'existe pas")
         return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+@login_required(login_url="/modcod/login")
 def edit_client(request,client_id):
     try : 
         client = get_object_or_404(Client , id = client_id )
@@ -816,6 +863,7 @@ def edit_client(request,client_id):
     except Client.DoesNotExist :
         messages.error(request,f"Le clinet d'id {client_id} n'existe pas")
         return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+@login_required(login_url="/modcod/login")
 def edit_client_action(request, client_id):
     if request.method == "POST":
         try:
@@ -831,3 +879,241 @@ def edit_client_action(request, client_id):
         except Client.DoesNotExist:
             messages.error(request, f"Le client avec l'ID {client_id} n'existe pas.")
             return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+        
+
+#NEW
+@login_required(login_url="/modcod/login")
+def ajouter_new_user_page(request):
+    return render(request,'private/ajouter_user.html')
+@login_required(login_url="/modcod/login")
+def create_user(request):
+    if request.method == "POST":
+        username = request.POST.get("username", "").strip()
+        email = request.POST.get("email", "").strip()
+        first_name = request.POST.get("first_name", "").strip()
+        last_name = request.POST.get("last_name", "").strip()
+        phone_number = request.POST.get("phone_number", "").strip()
+        adress = request.POST.get("adress", "").strip()
+        password = request.POST.get("password", "")
+        confirm_password = request.POST.get("confirm_password", "")
+        role = request.POST.get("role", "Utilisateur_Temporaire")
+        profile_image = request.FILES.get("profile_image")
+        if password != confirm_password:
+            messages.error(request, "Les mots de passe ne correspondent pas.")
+            return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+        if CustomUser.objects.filter(username=username).exists():
+            messages.error(request, "Nom d'utilisateur déjà utilisé.")
+            return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+        if CustomUser.objects.filter(email=email).exists():
+            messages.error(request, "Adresse e-mail déjà utilisée.")
+            return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+        user = CustomUser(
+            username=username,
+            email=email,
+            first_name=first_name,
+            last_name=last_name,
+            phone_number=phone_number,
+            adress=adress,
+            role=role,
+        )
+        if profile_image:
+            user.ProfileImage = profile_image
+        user.password = make_password(password)
+        user.save()
+        messages.success(request, "Utilisateur créé avec succès.")
+        return redirect("dashboardpage")  
+    return redirect('dashboardpage') 
+@login_required(login_url="/modcod/login")
+def api_chart_gagnee2(request):
+    projets = Project.objects.filter(status__in=["PS", "PAN", "PG", "PP", "PA"]).annotate(
+        month=TruncMonth('date_limite_reponse'),
+        year=ExtractYear('date_limite_reponse')
+    )
+    data = projets.values('month').annotate(count=Count('id')).order_by('month')
+    overall_labels = [item['month'].strftime("%b %Y") for item in data]
+    overall_values = [item['count'] for item in data]
+    years_data = defaultdict(lambda: { 'labels': [], 'values': [] })
+    temp_year_month_counts = defaultdict(lambda: defaultdict(int))
+    for proj in projets:
+        m = proj.month
+        y = proj.year
+        temp_year_month_counts[y][m] += 1
+    for year, months_dict in temp_year_month_counts.items():
+        labels = []
+        values = []
+        from datetime import datetime
+        import calendar
+        for month_num in range(1, 13):
+            dt = datetime(year, month_num, 1)
+            label = dt.strftime("%b %Y")
+            labels.append(label)
+            count = 0
+            for m_date, c in months_dict.items():
+                if m_date.year == year and m_date.month == month_num:
+                    count = c
+                    break
+            values.append(count)
+        years_data[str(year)] = {
+            "labels": labels,
+            "values": values
+        }
+    response = {
+        "overall": {
+            "labels": overall_labels,
+            "values": overall_values
+        },
+        "years": dict(years_data)
+    }
+    return JsonResponse(response)
+@login_required(login_url="/modcod/login")
+def api_chart_refusee2(request):
+    projets = Project.objects.filter(status="PEC").annotate(
+        month=TruncMonth('date_limite_reponse'),
+        year=ExtractYear('date_limite_reponse')
+    )
+    data = projets.values('month').annotate(count=Count('id')).order_by('month')
+    overall_labels = [item['month'].strftime("%b %Y") for item in data]
+    overall_values = [item['count'] for item in data]
+    years_data = defaultdict(lambda: { 'labels': [], 'values': [] })
+    temp_year_month_counts = defaultdict(lambda: defaultdict(int))
+    for proj in projets:
+        m = proj.month
+        y = proj.year
+        temp_year_month_counts[y][m] += 1
+    for year, months_dict in temp_year_month_counts.items():
+        labels = []
+        values = []
+        import calendar
+        for month_num in range(1, 13):
+            dt = datetime(year, month_num, 1)
+            label = dt.strftime("%b %Y")
+            labels.append(label)
+            count = 0
+            for m_date, c in months_dict.items():
+                if m_date.year == year and m_date.month == month_num:
+                    count = c
+                    break
+            values.append(count)
+        years_data[str(year)] = {
+            "labels": labels,
+            "values": values
+        }
+    response = {
+        "overall": {
+            "labels": overall_labels,
+            "values": overall_values
+        },
+        "years": dict(years_data)
+    }
+    return JsonResponse(response)
+@login_required(login_url="/modcod/login")
+def api_chart_comparatif2(request):
+    projets_gagnee = Project.objects.filter(status__in=["PS", "PAN", "PG", "PP", "PA"]).annotate(
+        month=TruncMonth('date_limite_reponse'),
+        year=ExtractYear('date_limite_reponse')
+    )
+    projets_refusee = Project.objects.filter(status="PEC").annotate(
+        month=TruncMonth('date_limite_reponse'),
+        year=ExtractYear('date_limite_reponse')
+    )
+    def build_year_month_counts(projets):
+        counts = defaultdict(lambda: defaultdict(int))
+        for p in projets:
+            counts[p.year][p.month] += 1
+        return counts
+    gagnee_counts = build_year_month_counts(projets_gagnee)
+    refusee_counts = build_year_month_counts(projets_refusee)
+    all_years = set(list(gagnee_counts.keys()) + list(refusee_counts.keys()))
+    all_months = set()
+    for y in all_years:
+        all_months.update(gagnee_counts[y].keys())
+        all_months.update(refusee_counts[y].keys())
+    all_months = sorted(all_months)
+
+    overall_labels = [dt.strftime("%b %Y") for dt in all_months]
+    overall_gagnee = []
+    overall_refusee = []
+    for month_dt in all_months:
+        total_gagnee = 0
+        total_refusee = 0
+        for y in all_years:
+            total_gagnee += gagnee_counts[y].get(month_dt, 0)
+            total_refusee += refusee_counts[y].get(month_dt, 0)
+        overall_gagnee.append(total_gagnee)
+        overall_refusee.append(total_refusee)
+    years_data = {}
+    for y in all_years:
+        labels = []
+        gagnee_values = []
+        refusee_values = []
+        for month_num in range(1, 13):
+            dt = datetime(y, month_num, 1)
+            labels.append(dt.strftime("%b %Y"))
+            gagnee_values.append(gagnee_counts[y].get(dt, 0))
+            refusee_values.append(refusee_counts[y].get(dt, 0))
+        years_data[str(y)] = {
+            "labels": labels,
+            "gagnee": gagnee_values,
+            "refusee": refusee_values,
+        }
+
+    response = {
+        "overall": {
+            "labels": overall_labels,
+            "gagnee": overall_gagnee,
+            "refusee": overall_refusee,
+        },
+        "years": years_data,
+        "available_years": sorted([str(y) for y in all_years])
+    }
+    return JsonResponse(response)
+def evolution2_Page(request):
+    return render(request,'data/evolution2.0.html')
+def evolutionPS_page(request):
+    return render(request,'data/evolution_PS.html')
+def evolitionPEC_page(request):
+    return render(request,'data/evolution_PEC.html')
+def evolitionPAS_page(request):
+    return render(request,'data/evolution_PAS.html')
+@login_required(login_url="/modcod/login")
+def api_chart_gagnee3(request):
+    projets = Project.objects.filter(status__in=["PAS"]).annotate(
+        month=TruncMonth('date_limite_reponse'),
+        year=ExtractYear('date_limite_reponse')
+    )
+    data = projets.values('month').annotate(count=Count('id')).order_by('month')
+    overall_labels = [item['month'].strftime("%b %Y") for item in data]
+    overall_values = [item['count'] for item in data]
+    years_data = defaultdict(lambda: { 'labels': [], 'values': [] })
+    temp_year_month_counts = defaultdict(lambda: defaultdict(int))
+    for proj in projets:
+        m = proj.month
+        y = proj.year
+        temp_year_month_counts[y][m] += 1
+    for year, months_dict in temp_year_month_counts.items():
+        labels = []
+        values = []
+        from datetime import datetime
+        import calendar
+        for month_num in range(1, 13):
+            dt = datetime(year, month_num, 1)
+            label = dt.strftime("%b %Y")
+            labels.append(label)
+            count = 0
+            for m_date, c in months_dict.items():
+                if m_date.year == year and m_date.month == month_num:
+                    count = c
+                    break
+            values.append(count)
+        years_data[str(year)] = {
+            "labels": labels,
+            "values": values
+        }
+    response = {
+        "overall": {
+            "labels": overall_labels,
+            "values": overall_values
+        },
+        "years": dict(years_data)
+    }
+    return JsonResponse(response)

@@ -35,7 +35,10 @@ def log_user_create_update(sender, instance, created, **kwargs):
 
 @receiver(post_delete, sender=CustomUser)
 def log_user_delete(sender, instance, **kwargs):
-    msg = f"Utilisateur '{instance.username}' a été supprimé."
+    current_user = CurrentUserMiddleware.get_current_user()
+    if current_user and current_user.id == instance.id:
+        return  
+    msg = f"L'utilisateur '{instance.username}' a été supprimé."
     create_log("Delete", instance, msg)
 
 @receiver(post_save, sender=Project)

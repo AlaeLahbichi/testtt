@@ -32,6 +32,15 @@ class Project(models.Model):
         ('PEC' , 'PEC'),
         ('PA' , 'PA'),
         ('PG' , 'PG'),
+        ('PAN' , 'PAN'),
+        ('PS' , 'PS'),
+        ('PAS','PAS'),
+        ('AU' , 'AU') , 
+    ]
+    Techno_Choices = [
+        ('OUI' , 'OUI') , 
+        ('NON' , 'NON') , 
+        ('Autre' , 'Autre') , 
     ]
     reference = models.CharField(max_length=100)
     reference_modcod = models.CharField(max_length=100)
@@ -45,6 +54,7 @@ class Project(models.Model):
     prospectus = models.DateField(blank=True, null=True)
     editeur = models.CharField(max_length=100, blank=True, null=True)
     contexte = models.CharField(max_length=100, blank=True, null=True)
+    technologie = models.CharField(max_length=100,choices=Techno_Choices,default="")
     documents_manquants = models.TextField(blank=True, null=True)
     etat_d_avancement = models.CharField(max_length=255,blank=True, null=True)
     etape_suivante = models.TextField(blank=True, null=True)
@@ -108,3 +118,4 @@ class Logs(models.Model):
 
     def __str__(self):
         return f"LOG-{self.id}"
+

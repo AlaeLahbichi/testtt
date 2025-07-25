@@ -279,7 +279,7 @@
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-value" id="totalProjects">-</div>
-                <div class="stat-label">Total Projets</div>
+                <div class="stat-label">Projets gagnés</div>
             </div>
             <div class="stat-card">
                 <div class="stat-value" id="avgProjects">-</div>
@@ -342,8 +342,8 @@
 
         const borderGradient = ctx.createLinearGradient(0, 0, ctx.canvas.width, 0);
         borderGradient.addColorStop(0, '#008b7a');
-        borderGradient.addColorStop(0.5, '#FFCB06');
-        borderGradient.addColorStop(1, '#FFA500');
+        borderGradient.addColorStop(0.5, '#008b7a');
+        borderGradient.addColorStop(1, '#008b7a');
 
         chartInstance = new Chart(ctx, {
             type: 'line',
@@ -362,8 +362,8 @@
                     pointBackgroundColor: '#ffffff',
                     pointBorderColor: '#008b7a',
                     pointBorderWidth: 3,
-                    pointHoverBackgroundColor: '#FFCB06',
-                    pointHoverBorderColor: '#FF8C00',
+                    pointHoverBackgroundColor: '#008b7a',
+                    pointHoverBorderColor: '#008b7a',
                     pointHoverBorderWidth: 3
                 }]
             },

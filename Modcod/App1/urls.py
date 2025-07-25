@@ -74,4 +74,16 @@ urlpatterns = [
     path('supprimer_client/<int:client_id>',Supprimer_Client,name="Supprimer_Client"),
     path('edit_client/<int:client_id>',edit_client,name="edit_client"),
     path('edit_client_action/<int:client_id>',edit_client_action,name="edit_client_action"),
+
+    #NEW
+    path('new_user/',ajouter_new_user_page,name="ajouter_new_user_page"),
+    path("create_user/", create_user, name="create_user_action"),
+    path('api2/charts/gagnee/', api_chart_gagnee2, name='api_chart_gagnee2'),
+    path('api3/charts/gagnee/', api_chart_gagnee3, name='api_chart_gagnee3'),
+    path('api2/charts/refusee/', api_chart_refusee2, name='api_chart_refusee2'),
+    path('api2/charts/comparatif/',api_chart_comparatif2, name='api_chart_comparatif2'),
+    path('evolution2_page/',evolution2_Page,name="evolution2_Page"),
+    path('evolution_PS/',evolutionPS_page,name="evolutionPS_page"),
+    path('evolution_PEC/',evolitionPEC_page,name="evolitionPEC_page"),
+    path('evolution_PAS/',evolitionPAS_page,name="evolitionPAS_page"),
 ]

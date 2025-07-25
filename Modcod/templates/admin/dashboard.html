@@ -18,24 +18,26 @@
         <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
         
         <div class="sidebar" id="sidebar">
-            <div class="sidebar-header" style="text-align:center;">
-                <h2 style="font-size:2rem;">Dashboard</h2>
+            <div class="sidebar-header" style="display:flex;justify-content:center;align-items:center;">
+                <img src="{% static "image/Modcod.png" %}" alt="logo of company" style="width:180px">
             </div>
             <nav class="sidebar-nav">
                 <div class="nav-item active" onclick="showSection('dashboard')">
                     <i>📊</i>
                     <span>Tableau de bord</span>
                 </div>
-                {% if request.user.role == "Admin" %}
+                {% if request.user.role == "Admin" or request.user.role == "Chef_projet" %}
                 <div class="nav-item" onclick="showSection('users')">
                     <i>👥</i>
                     <span>Utilisateurs</span>
                 </div>
                 {% endif %}
+                {% if request.user.role != "Utilisateur_Temporaire" and request.user.role != "Stagiaire" and request.user.role != "Utilisateur_Confirmé" and request.user.role != "Employe_Integration" %}
                 <div class="nav-item" onclick="window.location.href='{% url 'Client_Page' %}'">
                     <i>👥</i>
                     <span>Clients</span>
                 </div>
+                {% endif %}
                 <div class="nav-item" onclick="showSection('projects')">
                     <i>📁</i>
                     <span>Projets</span>
@@ -66,24 +68,44 @@
                 
                 <div class="stats-grid">
                     <div class="stat-card users">
-                        <h3 id="total-users">{{count.user}}</h3>
-                        <p>Utilisateurs totaux</p>
+                        <h3 id="completed-projects">{{count.Project_Total}}</h3>
+                        <p>Projet Total</p>
                     </div>
-                    <div class="stat-card completed">
-                        <h3 id="completed-projects">{{count.Project_avant_vente}}</h3>
+                    <div class="stat-card pg" style="color:rgb(219, 219, 12);">
+                        <h3 id="total-projects" style="color:#008b7a">{{count.project_gagnée}}</h3>
+                        <p>Projets Gagnés</p>
+                    </div>
+                    <div class="stat-card pp">
+                        <h3 id="active-users" style="color:#dc3545;">{{count.project_refusée}}</h3>
+                        <p>Projets Perdus</p>
+                    </div>
+                    <div class="stat-card ps">
+                        <h3 id="active-users" style="color:rgb(219, 219, 12);">{{count.Project_Soumis}}</h3>
+                        <p>Projets Soumis</p>
+                    </div>
+                    <div class="stat-card pas">
+                        <h3 id="completed-projects" style="color:#8B369E;">{{count.Projet_En_Attente_De_Soumission}}</h3>
+                        <p>Projet En Attente De Soumission</p>
+                    </div>
+                    <div class="stat-card pec">
+                        <h3 id="completed-projects" style="color:#d2d3d3;">{{count.Project_En_Cours}}</h3>
+                        <p>Projets Non Soumis</p>
+                    </div>
+                    <div class="stat-card pan">
+                        <h3 id="active-users" style="color:#9D2F32;">{{count.Project_Annulé}}</h3>
+                        <p>Projets Annulés</p>
+                    </div>
+                    <div class="stat-card au">
+                        <h3 id="active-users" style="color:#1E90FF">{{count.Project_Autre}}</h3>
+                        <p>Autres Projets</p>
+                    </div>
+                    <div class="stat-card pa">
+                        <h3 id="completed-projects" style="color:#FF8C00;">{{count.Project_avant_vente}}</h3>
                         <p>Projet avant vente</p>
                     </div>
-                    <div class="stat-card completed">
-                        <h3 id="completed-projects">{{count.Project_En_Cours}}</h3>
-                        <p>Projet En Cours</p>
-                    </div>
-                    <div class="stat-card projects">
-                        <h3 id="total-projects">{{count.project_gagnée}}</h3>
-                        <p>Projet gagnés</p>
-                    </div>
-                    <div class="stat-card active">
-                        <h3 id="active-users">{{count.project_refusée}}</h3>
-                        <p>Projet Perdus</p>
+                    <div class="stat-card users">
+                        <h3 id="total-users">{{count.user}}</h3>
+                        <p>Utilisateurs totaux</p>
                     </div>
                 </div>
                 {% include "../data/cercle.html" %}
@@ -100,8 +122,9 @@
                 </div>
 
                 <div class="table-container">
-                    <div class="table-header">
+                    <div class="table-header" style="display:flex;justify-content:space-between;align-items:center;">
                         <h3>Liste des utilisateurs</h3>
+                        <a href="{% url "ajouter_new_user_page" %}" style="text-decoration:none;"><button style="color:white;font-weight:bolder;font-size:1.1rem;padding:.6rem .9rem;border-radius:5px;background:#008b7a;border:none;outline:none;cursor: pointer;">Créer utilisateur 👤➕ </button></a>
                     </div>
                     <table id="users-table">
                         <thead>
@@ -129,7 +152,9 @@
                                     {% elif user.role != "Utilisateur_Temporaire" and user.id != request.user.id %}
                                         <a href="{% url "Edit_Profile" user.id %}" style="text-decoration:none;"><button style="text-align:center;" class="btn btn-info">✏️ Modifier</button></a>
                                     {% endif %}
+                                    {% if request.user.role == "Admin" %}
                                     <a href="{% url "supprimer_user_dahsboard" user.id %}" style="text-decoration:none;"><button style="text-align:center;" class="btn btn-danger">🗑️ Supprimer</button></a>
+                                    {% endif %}
                                     </td>
                                 </tr>
                             {% endfor %}
@@ -171,7 +196,7 @@
                                 <td style="text-align:center;">{{project.status}}</td>
                                 <td class="actions" style="align-items:center;justify-content:center;display:flex;" >
                                     <a href="{% url "modifier_project_page" project.id %}"><button style="text-align:center;" class="btn btn-warning" onclick="editProject(${project.id})">✏️ Modifier</button></a>
-                                    {% if request.user.role == "Admin" %}
+                                    {% if request.user.role == "Admin" or request.user.role == "Chef_projet" %}
                                         <a href="{% url "deleteproject" project.id %}"><button style="text-align:center;" class="btn btn-danger">🗑️ Supprimer</button></a>
                                     {% endif %}
                                 </td>

@@ -102,7 +102,7 @@
         
     </style>
     <div class="chart-container">
-        <h2 class="chart-title">États d'avancement des projets</h2>
+        <h2 class="chart-title">Statistiques des projets</h2>
         
         <div class="chart-canvas-container">
             <canvas id="etatChart"></canvas>
@@ -115,11 +115,11 @@
             </div>
             <div class="stat-item">
                 <span class="stat-value" id="completedProjects">--</span>
-                <span class="stat-label">Terminés</span>
+                <span class="stat-label">Gagnés</span>
             </div>
             <div class="stat-item">
                 <span class="stat-value" id="inProgressProjects">--</span>
-                <span class="stat-label">En cours</span>
+                <span class="stat-label">Perdus</span>
             </div>
         </div>
     </div>
@@ -129,10 +129,18 @@
     const etatLabels = {{ context.etat_labels|safe }};
     const etatValues = {{ context.etat_percentages|safe }};
 
-    const backgroundColors = [
-        "#004b48", "#006b66", "#2c3e50", "#FFA500", "#FF8C00", 
-        "#008b7a", "#004B49", "#FFCB06", "#6c757d", "#a0aec0"
-    ];
+    const colorMap = {
+        "AU": "rgba(30, 144, 255, 0.8)",     
+        "PAN": "#9D2F32",
+        "PS": "rgb(219, 219, 12)",
+        "PEC": "#d2d3d3",
+        "PG": "#008b7a",
+        "PP": "#dc3545",
+        "PA": "rgba(255, 165, 0, 0.8)",
+        "PAS" : "#8B369E",    
+    };
+
+    const backgroundColors = etatLabels.map(label => colorMap[label] || "#cccccc");
 
     const borderColors = new Array(etatValues.length).fill("#ffffff");
 
@@ -142,7 +150,7 @@
             labels: etatLabels,
             datasets: [{
                 data: etatValues,
-                backgroundColor: backgroundColors.slice(0, etatValues.length),
+                backgroundColor: backgroundColors,
                 borderColor: borderColors,
                 borderWidth: 2,
                 hoverOffset: 8,
@@ -197,11 +205,12 @@
 
     function updateStats() {
         const total = Math.round(etatValues.reduce((a, b) => a + b, 0));
-        const indexTermine = etatLabels.findIndex(label => label.toLowerCase().includes("gagnée") || label.toLowerCase().includes("terminée") || label.toLowerCase().includes("refusée"));
-        const indexEnCours = etatLabels.findIndex(label => label.toLowerCase().includes(""));
 
-        const completed = indexTermine !== -1 ? etatValues[indexTermine] : 0;
-        const inProgress = indexEnCours !== -1 ? etatValues[indexEnCours] : 0;
+        const indexPG = etatLabels.indexOf("PG");
+        const indexPP = etatLabels.indexOf("PP");
+
+        const completed = indexPG !== -1 ? etatValues[indexPG] : 0;
+        const inProgress = indexPP !== -1 ? etatValues[indexPP] : 0;
 
         document.getElementById('totalProjects').textContent = total + "%";
         document.getElementById('completedProjects').textContent = completed + "%";

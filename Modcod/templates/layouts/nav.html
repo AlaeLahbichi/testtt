@@ -45,10 +45,16 @@
                             Dashboard
                         </a>
                         {% endif %}
+                        {% if request.user.role != "Utilisateur_Temporaire"  and request.user.role != "Utilisateur_Confirmé"  %}
                         <a href="{% url "evolution" %}" class="profile-menu-item">
                             <span class="menu-icon">🚀</span>
                             Évolution
                         </a>
+                        <a href="{% url "evolution2_Page" %}" class="profile-menu-item">
+                            <span class="menu-icon">🚀</span>
+                            Évolution soumission
+                        </a>
+                        {% endif %}
                         <a href="{% url "reclamation_page" %}" class="profile-menu-item">
                             <span class="menu-icon">❓</span>
                             Réclamation
@@ -81,10 +87,16 @@
             {% endif %}
             {% if request.user.role == "Collaborateur" or request.user.role == "Admin" or request.user.role == "Chef_projet"  %}
                 <a href="{% url "create_project" %}" class="mobile-nav-item">➕ Nouveau</a>
+            {% endif %}
+            {% if request.user.role == "Collaborateur" or request.user.role == "Admin" or request.user.role == "Chef_projet" or request.user.role == "Stagiaire" or request.user.role == "Employe_Integration"  %}
+                <a href="{% url "evolution" %}" class="mobile-nav-item">🚀 Évolution</a>
+                <a href="{% url "evolution2_Page" %}" class="mobile-nav-item">🚀 Évolution soumission</a>
             {% endif %} 
             <hr style="margin: 1rem 0; border: none; border-top: 1px solid #e1e5e9;">
             <a href="{% url "profile" %}" class="mobile-nav-item">👤 Mon Profil</a>
+            {% if request.user.role == "Collaborateur" or request.user.role == "Admin" or request.user.role == "Chef_projet" %}
             <a href="{% url "dashboardpage" %}" class="mobile-nav-item">⚙️ Dashboard</a>
+            {% endif %}
             <a href="{% url "logout" %}" class="mobile-nav-item">🚪 Déconnexion</a>
         </div>
     </div>

@@ -66,12 +66,12 @@
 
                     <div class="form-group">
                         <label class="form-label" for="date_execution">Montant caution (MAD)</label>
-                        <input type="text" id="date_execution" name="montant_caution" class="form-input" placeholder="Montant de la caution en DH">
+                        <input type="text" id="date_execution" name="montant_caution" value="0.00" class="form-input" placeholder="Montant de la caution en DH">
                     </div>
 
                     <div class="form-group">
                         <label class="form-label" for="date_execution">Estimation du projet (MAD)</label>
-                        <input type="text" id="date_execution" name="estimation_projet" class="form-input" placeholder="Estimation du projet en DH">
+                        <input type="text" id="date_execution" name="estimation_projet" value="0.00" class="form-input" placeholder="Estimation du projet en DH">
                     </div>
 
                     <div class="form-group">
@@ -94,9 +94,23 @@
                         <select id="etat_avancement" name="status" class="form-select">
                             <option value="">Sélectionnez l'état</option>
                             <option value="PA">Projet Avant Vente</option>
-                            <option value="PEC">Projet En Cours</option>
+                            <option value="PAS">Projet En Attente De Soumission</option>
+                            <option value="PEC">Projet Non Soumis</option>
+                            <option value="PAN">Projet Annulé</option>
+                            <option value="PS">Projet Soumis</option>
                             <option value="PG">Projet Gagné</option>
                             <option value="PP">Projet Perdu</option>
+                            <option value="AU">Autre</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="etat_avancement">🧠 Technologie maitrisée</label>
+                        <select id="etat_avancement" name="technologie" class="form-select">
+                            <option disabled value="default">Sélectionner l'état de la maitrise...</option>
+                            <option value="OUI">OUI</option>
+                            <option value="NON">NON</option>
+                            <option value="Autre">Autre</option>
                         </select>
                     </div>
 
@@ -111,7 +125,7 @@
                     </div>
 
                     <div class="form-group full-width">
-                        <label class="form-label" for="contexte">Contexte</label>
+                        <label class="form-label" for="contexte">Contexte et/ou Commentaire</label>
                         <textarea id="contexte" name="contexte" class="form-textarea" placeholder="Décrivez le contexte du projet..."></textarea>
                     </div>
 

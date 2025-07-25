@@ -21,13 +21,16 @@
         </div>
         <ul class="navbar-nav">
             <li class="nav-item">
-                <a href="{% url "evolution" %}" class="nav-link">⚖️ Comparatif d'évolutions des appels d'offres</a>
+                <a href="{% url "evolution2_Page" %}" class="nav-link">⚖️ Comparatif d'évolution des projets soumis</a>
             </li>
             <li class="nav-item">
-                <a href="{% url "evolution2" %}" class="nav-link active">📈 Évolutions des appels d'offres gagnées</a>
+                <a href="{% url "evolutionPS_page" %}" class="nav-link">📈 Évolutions des Projets Soumis</a>
             </li>
             <li class="nav-item">
-                <a href="{% url "evolution3" %}" class="nav-link">📉 Évolutions des appels d'offres perdues </a>
+                <a href="{% url "evolitionPEC_page" %}" class="nav-link">📉 Évolutions des Projets Non Soumis </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url "evolitionPAS_page" %}" class="nav-link active">📉 Évolutions des Projets En Attente De Soumissions </a>
             </li>
             {% if request.user.role != "Utilisateur_Temporaire" and request.user.role != "Stagiaire" and request.user.role != "Utilisateur_Confirmé" %}
             <li class="nav-item">
@@ -41,7 +44,7 @@
     </nav>
 
     <main class="main-content" id="mainContent">
-        {% include "./gagnée.html" %}
+        {% include "./PAS.html" %}
     </main>
     <script src="{% static "js/data/evolution.js" %}"></script>
 </body>

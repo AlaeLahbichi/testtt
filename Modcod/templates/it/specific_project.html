@@ -57,7 +57,7 @@
                             </button>
                         </a>
                     {% endif %}
-                    {% if request.user.role == "Admin" %}
+                    {% if request.user.role == "Admin" or request.user.role == "Chef_projet" %}
                         <a style="text-decoration:none;" href="{% url "deleteproject2" project.id %}">
                             <button class="action-btn btn-delete">
                                 <span>🗑️</span>
@@ -140,7 +140,12 @@
                 </div>
 
                 <div class="data-row">
-                    <div class="data-label">Contexte</div>
+                    <div class="data-label">Technologie maitrisée</div>
+                    <div class="data-value" id="contexte">{% if project.technologie %}{{project.technologie}}{% else %}Rien n’est mentionné dans cette section.{% endif %}</div>
+                </div>
+
+                <div class="data-row">
+                    <div class="data-label">Contexte et/ou Commentaire</div>
                     <div class="data-value" id="contexte">{% if project.contexte %}{{project.contexte}}{% else %}Rien n’est mentionné dans cette section.{% endif %}</div>
                 </div>
 

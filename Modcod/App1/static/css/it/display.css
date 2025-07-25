@@ -180,9 +180,62 @@
         }
 
         .status-pec {
+            background: #d2d3d3;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            animation: pulse 2s infinite;
+        }
+
+        .status-pa {
             background: linear-gradient(135deg, #FFA500, #FF8C00);
             color: white;
             position: relative;
+            overflow: hidden;
+            animation: pulse 2s infinite;
+        }
+
+        .status-au {
+            background: linear-gradient(135deg, #1E90FF, #00BFFF); 
+            color: white;
+            position: relative;
+            overflow: hidden;
+            animation: pulse 2s infinite;
+        }
+
+        .status-pan {
+            background:  #9D2F32;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            animation: pulse 2s infinite;
+        }
+
+        .status-ps {
+            background:  rgb(219, 219, 12);
+            color: white;
+            position: relative;
+            overflow: hidden;
+            animation: pulse 2s infinite;
+        }
+
+        .status-pp {
+            background: #dc3545;
+            color: white;
+            overflow: hidden;
+            animation: pulse 2s infinite;
+        }
+
+        .status-pas{
+            background: #8B369E;
+            color: white;
+            overflow: hidden;
+            animation: pulse 2s infinite;
+        }
+
+        .status-pg {
+            background: #008b7a;
+            color: white;
             overflow: hidden;
             animation: pulse 2s infinite;
         }
@@ -206,16 +259,6 @@
         @keyframes shimmer {
             0% { left: -100%; }
             100% { left: 100%; }
-        }
-
-        .status-pp {
-            background: #dc3545;
-            color: white;
-        }
-
-        .status-pg {
-            background: #008b7a;
-            color: white;
         }
 
         .project-object {

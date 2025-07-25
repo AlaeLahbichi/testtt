@@ -248,9 +248,10 @@
     }
     }
 </style>
+
 <div class="container">
     <div class="header">
-        <h1>Évolution des projets Gagnés et Perdus</h1>
+        <h1>Evolution des projets soumis et non soumis</h1>
         <p>Analyse des performances mensuelles</p>
     </div>
     
@@ -258,36 +259,36 @@
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-value" id="totalProjectsGagnee">-</div>
-                <div class="stat-label">Projets gagnés</div>
+                <div class="stat-label">Projets Soumis</div>
             </div>
             <div class="stat-card">
                 <div class="stat-value" id="avgProjectsGagnee">-</div>
-                <div class="stat-label">Moyenne/Mois Gagnés</div>
+                <div class="stat-label">Moyenne/Mois Soumis</div>
             </div>
             <div class="stat-card">
                 <div class="stat-value" id="bestMonthGagnee">-</div>
-                <div class="stat-label">Meilleur mois GAGNÉS</div>
+                <div class="stat-label">Meilleur mois Soumis</div>
             </div>
             <div class="stat-card">
                 <div class="stat-value" id="growthGagnee">-</div>
-                <div class="stat-label">Croissance Gagnés</div>
+                <div class="stat-label">Croissance Soumis</div>
             </div>
 
             <div class="stat-card">
                 <div class="stat-value" id="totalProjectsRefusee">-</div>
-                <div class="stat-label">Projets perdus</div>
+                <div class="stat-label">Projets Non Soumis</div>
             </div>
             <div class="stat-card">
                 <div class="stat-value" id="avgProjectsRefusee">-</div>
-                <div class="stat-label">Moyenne/Mois Perdus</div>
+                <div class="stat-label">Moyenne/Mois Non Soumis</div>
             </div>
             <div class="stat-card">
                 <div class="stat-value" id="bestMonthRefusee">-</div>
-                <div class="stat-label">Mauvais mois PERDUS</div>
+                <div class="stat-label">Mauvais mois Non Soumis</div>
             </div>
             <div class="stat-card">
                 <div class="stat-value" id="growthRefusee">-</div>
-                <div class="stat-label">Croissance Perdus</div>
+                <div class="stat-label">Croissance Non Soumis</div>
             </div>
         </div>
         
@@ -353,12 +354,12 @@
 
         // Dégradé pour gagnés (vert)
         const gradientGagnee = ctx.createLinearGradient(0, 0, 0, 400);
-        gradientGagnee.addColorStop(0, '#008b7a');
+        gradientGagnee.addColorStop(0, 'rgb(219, 219, 12)');
         gradientGagnee.addColorStop(1, 'rgba(0, 139, 122, 0.1)');
 
         // Dégradé pour refusés (orange)
         const gradientRefusee = ctx.createLinearGradient(0, 0, 0, 400);
-        gradientRefusee.addColorStop(0, '#dc3545');
+        gradientRefusee.addColorStop(0, '#d2d3d3');
         gradientRefusee.addColorStop(1, 'rgba(255, 140, 0, 0.1)');
 
         chartInstance = new Chart(ctx, {
@@ -367,9 +368,9 @@
                 labels: data.labels,
                 datasets: [
                     {
-                        label: "Projets Gagnés",
+                        label: "Projets Soumis",
                         data: data.gagnee,
-                        borderColor: '#008b7a',
+                        borderColor: 'rgb(219, 219, 12)',
                         backgroundColor: gradientGagnee,
                         fill: false,
                         tension: 0.4,
@@ -377,16 +378,16 @@
                         pointRadius: 6,
                         pointHoverRadius: 8,
                         pointBackgroundColor: '#ffffff',
-                        pointBorderColor: '#008b7a',
+                        pointBorderColor: 'rgb(219, 219, 12)',
                         pointBorderWidth: 3,
-                        pointHoverBackgroundColor: '#008b7a',
-                        pointHoverBorderColor: '#008b7a',
+                        pointHoverBackgroundColor: 'rgb(219, 219, 12)',
+                        pointHoverBorderColor: 'rgb(219, 219, 12)',
                         pointHoverBorderWidth: 3,
                     },
                     {
-                        label: "Projets Perdus",
+                        label: "Projets Non Soumis",
                         data: data.refusee,
-                        borderColor: '#dc3545',
+                        borderColor: '#d2d3d3',
                         backgroundColor: gradientRefusee,
                         fill: false,
                         tension: 0.4,
@@ -394,10 +395,10 @@
                         pointRadius: 6,
                         pointHoverRadius: 8,
                         pointBackgroundColor: '#ffffff',
-                        pointBorderColor: '#dc3545',
+                        pointBorderColor: '#d2d3d3',
                         pointBorderWidth: 3,
-                        pointHoverBackgroundColor: '#dc3546aa',
-                        pointHoverBorderColor: '#dc3545',
+                        pointHoverBackgroundColor: '#d2d3d3',
+                        pointHoverBorderColor: '#d2d3d3',
                         pointHoverBorderWidth: 3,
                     }
                 ]
@@ -451,7 +452,7 @@
     }
 
     function init() {
-        fetch("/modcod/api/charts/comparatif/")
+        fetch("/modcod/api2/charts/comparatif/")
             .then(response => response.json())
             .then(data => {
                 allData = data;

@@ -20,14 +20,25 @@
       <div class="filter-group">
         <select id="statusFilter" class="filter-select">
           <option value="">Tous les statuts</option>
-          <option value="PEC">Projet En Cours</option>
+          <option value="PA">Projet Avant Vente</option>
+          <option value="PAS">Projet En Attente De Soumission</option>
+          <option value="PEC">Projet Non Soumis</option>
+          <option value="PAN">Projet Annulé</option>
+          <option value="PS">Projet Soumis</option>
           <option value="PG">Projet Gagné</option>
           <option value="PP">Projet Perdu</option>
+          <option value="AU">Autre</option>
         </select>
         <select id="editorFilter" class="filter-select">
           <option value="">Tous les éditeurs</option>
           {% for editeur in editeurs %}
             <option value="{{ editeur }}">{{ editeur }}</option>
+          {% endfor %}
+        </select>
+        <select id="clientFilter" class="filter-select">
+          <option value="">Tous les clients</option>
+          {% for client in clients %}
+            <option value="{{ client }}">{{ client }}</option>
           {% endfor %}
         </select>
         <input type="date" id="dateFrom" class="date-input" placeholder="Date début">
@@ -58,6 +69,17 @@
     });
   }
 
+  function populateClientFilter(clients) {
+    const select = document.getElementById('clientFilter');
+    select.innerHTML = '<option value="">Tous les clients</option>';
+    clients.forEach(client => {
+      const option = document.createElement('option');
+      option.value = client;
+      option.textContent = client;
+      select.appendChild(option);
+    });
+  }
+
   function renderProjects(projectsToRender) {
     const container = document.getElementById('projectsContainer');
 
@@ -77,11 +99,11 @@
       <div class="project-card">
         <div class="project-header">
           <div>
-            <div class="project-reference">${project.reference}</div>
-            <div class="project-modcod">${project.reference_modcod}</div>
+            <div class="project-reference">${project.client}</div>
+            <div class="project-modcod">${project.reference}</div>
           </div>
-          <div class="status-badge status-${formatStatusClass(project.status)}">
-            ${project.status}
+          <div class="status-badge status-${formatStatusClass(project.status)}" style="text-align:center;">
+            ${project.status === "PA" ? "Projet Avant Vente" :project.status === "PEC" ? "Projet Non Soumis" :project.status === "PAN" ? "Projet Annulé" :project.status === "PS" ? "Projet Soumis" :project.status === "PP" ? "Projet Perdu" :project.status === "PG" ? "Projet Gagné" :project.status === "AU" ? "Autre" :project.status === "PAS" ? "Projet En Attente De Soumission" :"Statut inconnu"}
           </div>
         </div>
 
@@ -95,8 +117,8 @@
             <span class="detail-value">${project.editeur || 'N/A'}</span>
           </div>
           <div class="detail-item">
-            <span class="detail-label">Prospectus</span>
-            <span class="detail-value">${project.prospectus || 'N/A'}</span>
+            <span class="detail-label" >Prospectus</span>
+            <span class="detail-value" style="color:red;font-weight:bolder;">${project.prospectus || 'N/A'}</span>
           </div>
           <div 
             class="detail-item ${project.document_manquant && project.document_manquant !== 'Aucun' ? 'document-alert' : 'N/A'}" 
@@ -130,6 +152,7 @@
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     const statusFilter = document.getElementById('statusFilter').value;
     const editorFilter = document.getElementById('editorFilter')?.value || '';
+    const clientFilter = document.getElementById('clientFilter')?.value || '';
     const dateFrom = document.getElementById('dateFrom').value;
     const dateTo = document.getElementById('dateTo').value;
 
@@ -138,16 +161,18 @@
         !searchTerm ||
         project.reference?.toLowerCase().includes(searchTerm) ||
         project.editeur?.toLowerCase().includes(searchTerm) ||
+        project.client?.toLowerCase().includes(searchTerm) ||
         project.reference_modcod?.toLowerCase().includes(searchTerm);
 
       const matchesStatus = !statusFilter || project.status === statusFilter;
       const matchesEditor = !editorFilter || project.editeur === editorFilter;
+      const matchesClient = !clientFilter || project.client?.toLowerCase().includes(clientFilter.toLowerCase());
 
       const projectDate = new Date(project.date_limite);
       const matchesDateFrom = !dateFrom || projectDate >= new Date(dateFrom);
       const matchesDateTo = !dateTo || projectDate <= new Date(dateTo);
 
-      return matchesSearch && matchesStatus && matchesEditor && matchesDateFrom && matchesDateTo;
+      return matchesSearch && matchesStatus && matchesEditor && matchesDateFrom && matchesDateTo && matchesClient;
     });
 
     renderProjects(filteredProjects);
@@ -173,6 +198,7 @@
       projects = data.projects.map(p => ({
         id: p.id,
         reference: p.reference,
+        client : p.client__username || 'N/A' , 
         reference_modcod: p.reference_modcod,
         object: p.objet,
         date_limite: p.date_limite_reponse ? new Date(p.date_limite_reponse).toISOString().split('T')[0] : '',
@@ -187,6 +213,7 @@
       filteredProjects = [...projects];
 
       populateEditorFilter(data.editeurs);
+      populateClientFilter(data.clients);
       renderProjects(filteredProjects);
     } catch (error) {
       console.error("Erreur de chargement des projets :", error);
@@ -199,6 +226,7 @@
     document.getElementById('searchInput').addEventListener('input', filterProjects);
     document.getElementById('statusFilter').addEventListener('change', filterProjects);
     document.getElementById('editorFilter').addEventListener('change', filterProjects);
+    document.getElementById('clientFilter').addEventListener('change', filterProjects);
     document.getElementById('dateFrom').addEventListener('change', filterProjects);
     document.getElementById('dateTo').addEventListener('change', filterProjects);
   });

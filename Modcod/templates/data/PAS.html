@@ -2,7 +2,6 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link rel="icon" type="image/x-icon" href="{% static 'images/modcod.ico' %}">
 <style>
-
     .container {
         max-width: 1200px;
         margin: 0 auto;
@@ -106,7 +105,7 @@
     .stat-value {
         font-size: 2rem;
         font-weight: 700;
-        color: #008b7a;
+        color: #8B369E;
         margin-bottom: 5px;
     }
 
@@ -135,7 +134,7 @@
         width: 40px;
         height: 40px;
         border: 4px solid #e1e5e9;
-        border-top: 4px solid #008b7a;
+        border-top: 4px solid #8B369E;
         border-radius: 50%;
         animation: spin 1s linear infinite;
         margin-right: 15px;
@@ -181,7 +180,7 @@
     }
 
     .filter-label svg {
-    color: #008b7a;
+    color: #8B369E;
     opacity: 0.8;
     }
 
@@ -210,14 +209,14 @@
     }
 
     .modern-select:hover {
-    border-color: #008b7a;
+    border-color: #8B369E;
     box-shadow: 0 4px 12px rgba(0, 139, 122, 0.15);
     transform: translateY(-1px);
     }
 
     .modern-select:focus {
     outline: none;
-    border-color: #008b7a;
+    border-color: #d2d8B369E3d3;
     box-shadow: 0 0 0 3px rgba(0, 139, 122, 0.1);
     transform: translateY(-1px);
     }
@@ -233,12 +232,12 @@
     }
 
     .modern-select:hover + .select-arrow {
-    color: #008b7a;
+    color: #8B369E;
     transform: translateY(-50%) rotate(180deg);
     }
 
     .modern-select:focus + .select-arrow {
-    color: #008b7a;
+    color: #8B369E;
     transform: translateY(-50%) rotate(180deg);
     }
 
@@ -250,44 +249,48 @@
 </style>
 <div class="container">
     <div class="header">
-        <h1>Évolution des projets Gagnés et Perdus</h1>
+        <h1>Projets En Attente De Soumissions</h1>
         <p>Analyse des performances mensuelles</p>
     </div>
     
     <div class="chart-container">
+        <div class="filter-section">
+            <div class="filter-container">
+                <label for="yearSelect" class="filter-label">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    Filtrer par année
+                </label>
+                <div class="select-wrapper">
+                    <select id="yearSelect" class="modern-select">
+                        <option value="all">Toutes les années</option>
+                    </select>
+                    <svg class="select-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6,9 12,15 18,9"></polyline>
+                    </svg>
+                </div>
+            </div>
+        </div>
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-value" id="totalProjectsGagnee">-</div>
-                <div class="stat-label">Projets gagnés</div>
+                <div class="stat-value" id="totalProjects">-</div>
+                <div class="stat-label">Projets En Attente De Soumissions</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value" id="avgProjectsGagnee">-</div>
-                <div class="stat-label">Moyenne/Mois Gagnés</div>
+                <div class="stat-value" id="avgProjects">-</div>
+                <div class="stat-label">Moyenne/Mois</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value" id="bestMonthGagnee">-</div>
-                <div class="stat-label">Meilleur mois GAGNÉS</div>
+                <div class="stat-value" id="bestMonth">-</div>
+                <div class="stat-label">Top Mois</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value" id="growthGagnee">-</div>
-                <div class="stat-label">Croissance Gagnés</div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-value" id="totalProjectsRefusee">-</div>
-                <div class="stat-label">Projets perdus</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="avgProjectsRefusee">-</div>
-                <div class="stat-label">Moyenne/Mois Perdus</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="bestMonthRefusee">-</div>
-                <div class="stat-label">Mauvais mois PERDUS</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="growthRefusee">-</div>
-                <div class="stat-label">Croissance Perdus</div>
+                <div class="stat-value" id="growth">-</div>
+                <div class="stat-label">Croissance</div>
             </div>
         </div>
         
@@ -296,52 +299,33 @@
                 <div class="spinner"></div>
                 Chargement des données...
             </div>
-            <canvas id="chartEvolution" style="display: none;"></canvas>
+            <canvas id="chartRefuse" style="display: none;"></canvas>
         </div>
     </div>
 </div>
 
 <script>
+
+    const yearSelect = document.getElementById('yearSelect');
     const loadingElem = document.getElementById('loading');
-    const canvasElem = document.getElementById('chartEvolution');
+    const canvasElem = document.getElementById('chartRefuse');
 
     let chartInstance = null;
-    let allData = null;
-
-    function computeStats(values, labels) {
-        const total = values.reduce((a, b) => a + b, 0);
-        const avg = values.length ? Math.round(total / values.length) : 0;
-        const maxValue = Math.max(...values);
-        const maxIndex = values.indexOf(maxValue);
-        const bestMonth = labels[maxIndex] || '-';
-
-        let growth = 0;
-        const first = values[0];
-        const last = values[values.length - 1];
-
-        if (first === 0 && last > 0) {
-            growth = 100; 
-        } else if (first !== 0) {
-            growth = Math.round(((last - first) / first) * 100);
-        }
-
-        return { total, avg, bestMonth, growth };
-    }
+    let allData = null;  
 
     function updateStats(data) {
-        // Gagnés stats
-        const statsGagnee = computeStats(data.gagnee, data.labels);
-        document.getElementById('totalProjectsGagnee').textContent = statsGagnee.total;
-        document.getElementById('avgProjectsGagnee').textContent = statsGagnee.avg;
-        document.getElementById('bestMonthGagnee').textContent = statsGagnee.bestMonth;
-        document.getElementById('growthGagnee').textContent = statsGagnee.growth + '%';
+        const total = data.values.reduce((a, b) => a + b, 0);
+        const avg = Math.round(total / data.values.length);
+        const maxValue = Math.max(...data.values);
+        const maxIndex = data.values.indexOf(maxValue);
+        const bestMonth = data.labels[maxIndex];
+        const growth = data.values.length > 1 && data.values[0] !== 0 ? 
+            Math.round(((data.values[data.values.length - 1] - data.values[0]) / data.values[0]) * 100) : 0;
 
-        // Refusés stats
-        const statsRefusee = computeStats(data.refusee, data.labels);
-        document.getElementById('totalProjectsRefusee').textContent = statsRefusee.total;
-        document.getElementById('avgProjectsRefusee').textContent = statsRefusee.avg;
-        document.getElementById('bestMonthRefusee').textContent = statsRefusee.bestMonth;
-        document.getElementById('growthRefusee').textContent = statsRefusee.growth + '%';
+        document.getElementById('totalProjects').textContent = total;
+        document.getElementById('avgProjects').textContent = avg;
+        document.getElementById('bestMonth').textContent = bestMonth;
+        document.getElementById('growth').textContent = growth + '%';
     }
 
     function createChart(data) {
@@ -351,73 +335,53 @@
             chartInstance.destroy();
         }
 
-        // Dégradé pour gagnés (vert)
-        const gradientGagnee = ctx.createLinearGradient(0, 0, 0, 400);
-        gradientGagnee.addColorStop(0, '#008b7a');
-        gradientGagnee.addColorStop(1, 'rgba(0, 139, 122, 0.1)');
+        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, '#8B369E');   
+        gradient.addColorStop(1, '#d2d3d3');
 
-        // Dégradé pour refusés (orange)
-        const gradientRefusee = ctx.createLinearGradient(0, 0, 0, 400);
-        gradientRefusee.addColorStop(0, '#dc3545');
-        gradientRefusee.addColorStop(1, 'rgba(255, 140, 0, 0.1)');
+        const borderGradient = ctx.createLinearGradient(0, 0, ctx.canvas.width, 0);
+        borderGradient.addColorStop(0, '#8B369E');  
+        borderGradient.addColorStop(0.5, '#8B369E');
+        borderGradient.addColorStop(1, '#8B369E');
 
         chartInstance = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: data.labels,
-                datasets: [
-                    {
-                        label: "Projets Gagnés",
-                        data: data.gagnee,
-                        borderColor: '#008b7a',
-                        backgroundColor: gradientGagnee,
-                        fill: false,
-                        tension: 0.4,
-                        borderWidth: 3,
-                        pointRadius: 6,
-                        pointHoverRadius: 8,
-                        pointBackgroundColor: '#ffffff',
-                        pointBorderColor: '#008b7a',
-                        pointBorderWidth: 3,
-                        pointHoverBackgroundColor: '#008b7a',
-                        pointHoverBorderColor: '#008b7a',
-                        pointHoverBorderWidth: 3,
-                    },
-                    {
-                        label: "Projets Perdus",
-                        data: data.refusee,
-                        borderColor: '#dc3545',
-                        backgroundColor: gradientRefusee,
-                        fill: false,
-                        tension: 0.4,
-                        borderWidth: 3,
-                        pointRadius: 6,
-                        pointHoverRadius: 8,
-                        pointBackgroundColor: '#ffffff',
-                        pointBorderColor: '#dc3545',
-                        pointBorderWidth: 3,
-                        pointHoverBackgroundColor: '#dc3546aa',
-                        pointHoverBorderColor: '#dc3545',
-                        pointHoverBorderWidth: 3,
-                    }
-                ]
+                datasets: [{
+                    label: "Projets En Attente De Soumissions",
+                    data: data.values,
+                    borderColor: borderGradient,
+                    backgroundColor: gradient,
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 3,
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#8B369E',
+                    pointBorderWidth: 3,
+                    pointHoverBackgroundColor: '#8B369E',
+                    pointHoverBorderColor: '#8B369E',
+                    pointHoverBorderWidth: 3
+                }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { display: true, position: 'top' },
+                    legend: { display: false },
                     tooltip: {
                         backgroundColor: 'rgba(44, 62, 80, 0.95)',
                         titleColor: '#ffffff',
                         bodyColor: '#ffffff',
-                        borderColor: '#008b7a',
+                        borderColor: '#8B369E',
                         borderWidth: 2,
                         cornerRadius: 10,
-                        displayColors: true,
+                        displayColors: false,
                         callbacks: {
                             label: function(context) {
-                                return `${context.parsed.y} projets ${context.dataset.label.toLowerCase()}`;
+                                return `${context.parsed.y} projets en attente de soumissions`;
                             }
                         }
                     }
@@ -450,15 +414,32 @@
         });
     }
 
+    function filterDataByYear(year) {
+        if (year === 'all') {
+            return allData.overall; 
+        }
+        return allData.years[year] || { labels: [], values: [] };
+    }
+
+    function populateYearSelect(years) {
+        years.forEach(y => {
+            const opt = document.createElement('option');
+            opt.value = y;
+            opt.textContent = y;
+            yearSelect.appendChild(opt);
+        });
+    }
+
     function init() {
-        fetch("/modcod/api/charts/comparatif/")
+        fetch("/modcod/api3/charts/gagnee/")
             .then(response => response.json())
             .then(data => {
                 allData = data;
+                populateYearSelect(Object.keys(data.years));
                 loadingElem.style.display = 'none';
                 canvasElem.style.display = 'block';
 
-                const initialData = allData.overall;
+                const initialData = filterDataByYear('all');
                 updateStats(initialData);
                 createChart(initialData);
             })
@@ -467,6 +448,13 @@
                 console.error(err);
             });
     }
+
+    yearSelect.addEventListener('change', (e) => {
+        const selectedYear = e.target.value;
+        const filteredData = filterDataByYear(selectedYear);
+        updateStats(filteredData);
+        createChart(filteredData);
+    });
 
     init();
 </script>

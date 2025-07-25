@@ -105,7 +105,7 @@
     .stat-value {
         font-size: 2rem;
         font-weight: 700;
-        color: #008b7a;
+        color: #dc3545;
         margin-bottom: 5px;
     }
 
@@ -134,7 +134,7 @@
         width: 40px;
         height: 40px;
         border: 4px solid #e1e5e9;
-        border-top: 4px solid #008b7a;
+        border-top: 4px solid #dc3545;
         border-radius: 50%;
         animation: spin 1s linear infinite;
         margin-right: 15px;
@@ -180,7 +180,7 @@
     }
 
     .filter-label svg {
-    color: #008b7a;
+    color: #dc3545;
     opacity: 0.8;
     }
 
@@ -209,7 +209,7 @@
     }
 
     .modern-select:hover {
-    border-color: #008b7a;
+    border-color: #dc3545;
     box-shadow: 0 4px 12px rgba(0, 139, 122, 0.15);
     transform: translateY(-1px);
     }
@@ -232,12 +232,12 @@
     }
 
     .modern-select:hover + .select-arrow {
-    color: #008b7a;
+    color: #dc3545;
     transform: translateY(-50%) rotate(180deg);
     }
 
     .modern-select:focus + .select-arrow {
-    color: #008b7a;
+    color: #dc3545;
     transform: translateY(-50%) rotate(180deg);
     }
 
@@ -278,7 +278,7 @@
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-value" id="totalProjects">-</div>
-                <div class="stat-label">Total Projets</div>
+                <div class="stat-label">Projets perdus</div>
             </div>
             <div class="stat-card">
                 <div class="stat-value" id="avgProjects">-</div>
@@ -286,7 +286,7 @@
             </div>
             <div class="stat-card">
                 <div class="stat-value" id="bestMonth">-</div>
-                <div class="stat-label">Meilleur Mois</div>
+                <div class="stat-label">Mauvais Mois</div>
             </div>
             <div class="stat-card">
                 <div class="stat-value" id="growth">-</div>
@@ -336,20 +336,20 @@
         }
 
         const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-        gradient.addColorStop(0, 'rgba(255, 140, 0, 0.8)');   // orange foncé
+        gradient.addColorStop(0, '#dc3545');   // orange foncé
         gradient.addColorStop(1, 'rgba(255, 140, 0, 0.1)');
 
         const borderGradient = ctx.createLinearGradient(0, 0, ctx.canvas.width, 0);
-        borderGradient.addColorStop(0, '#FFA500');  // orange clair
-        borderGradient.addColorStop(0.5, '#FF8C00');
-        borderGradient.addColorStop(1, '#FFCB06');
+        borderGradient.addColorStop(0, '#dc3545');  // orange clair
+        borderGradient.addColorStop(0.5, '#dc3545');
+        borderGradient.addColorStop(1, '#dc3545');
 
         chartInstance = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: data.labels,
                 datasets: [{
-                    label: "Projets Refusés",
+                    label: "Projets Perdus",
                     data: data.values,
                     borderColor: borderGradient,
                     backgroundColor: gradient,
@@ -359,10 +359,10 @@
                     pointRadius: 6,
                     pointHoverRadius: 8,
                     pointBackgroundColor: '#ffffff',
-                    pointBorderColor: '#FF8C00',
+                    pointBorderColor: '#dc3545',
                     pointBorderWidth: 3,
-                    pointHoverBackgroundColor: '#FFCB06',
-                    pointHoverBorderColor: '#FFA500',
+                    pointHoverBackgroundColor: '#dc3545',
+                    pointHoverBorderColor: '#dc3545',
                     pointHoverBorderWidth: 3
                 }]
             },
@@ -381,7 +381,7 @@
                         displayColors: false,
                         callbacks: {
                             label: function(context) {
-                                return `${context.parsed.y} projets refusés`;
+                                return `${context.parsed.y} projets perdus`;
                             }
                         }
                     }

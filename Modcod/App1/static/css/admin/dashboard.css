@@ -121,10 +121,16 @@
             font-size: 16px;
         }
 
-        .stat-card.users { border-left: 4px solid #FFA500; }
-        .stat-card.projects { border-left: 4px solid #006b66; }
         .stat-card.active { border-left: 4px solid #008b7a; }
-        .stat-card.completed { border-left: 4px solid #FFCB06; }
+        .stat-card.users { border-left: 4px solid #3ddb22; }
+        .stat-card.pec { border-left: 4px solid #d2d3d3; }
+        .stat-card.pan { border-left: 4px solid #9D2F32; }
+        .stat-card.pp { border-left: 4px solid #dc3545; }
+        .stat-card.pg { border-left: 4px solid #008b7a; }
+        .stat-card.ps { border-left: 4px solid rgb(219, 219, 12); }
+        .stat-card.pa { border-left: 4px solid #FF8C00; }
+        .stat-card.au { border-left: 4px solid #1E90FF; }
+        .stat-card.pas { border-left: 4px solid #8B369E; }
 
         /* Tables */
         .table-container {
